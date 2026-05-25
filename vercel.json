@@ -31,7 +31,7 @@
     },
     {
       "src": "/storage/(.*)",
-      "dest": "/storage/app/public/$1"
+      "dest": "/public/vercel-storage/$1"
     },
     {
       "src": "/favicon.ico",

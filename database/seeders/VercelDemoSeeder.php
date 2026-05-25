@@ -106,5 +106,38 @@ class VercelDemoSeeder extends Seeder
                 'updated_at' => '2026-05-18 11:44:42',
             ],
         ]);
+
+        DB::table('orders')->insert([
+            [
+                'id' => 1,
+                'product_id' => 4,
+                'product_name' => 'T Shirt',
+                'items' => '[{"key":"4|XS|White-Blue","id":4,"name":"T Shirt","price":0.01,"image":"products/JuYMbyoeLg9o3zA5XZmCS3EYUobxxMcGU5Q8HL2x.jpg","size":"XS","color":"White-Blue","color_image":"product-colors/vAttxhAW1CQdNLnz0IEwA6zNUTvoIB3A7uvNMCQP.jpg","qty":1,"cart_key":"4|XS|White-Blue"}]',
+                'amount' => '0.01',
+                'currency' => 'USD',
+                'md5' => 'demo-order-1',
+                'bill_number' => 'VERCEL-DEMO-001',
+                'status' => 'PAID',
+                'paid_at' => '2026-05-19 11:51:36',
+                'user_id' => null,
+                'created_at' => '2026-05-19 11:51:20',
+                'updated_at' => '2026-05-19 11:51:36',
+            ],
+            [
+                'id' => 2,
+                'product_id' => 5,
+                'product_name' => 'Pants',
+                'items' => '[{"key":"5|XS|Black","id":5,"name":"Pants","price":0.02,"image":"products/3koqFsBbpdX0KCp43Wa0CkYp32aJoGWnWSEUd465.jpg","size":"XS","color":"Black","color_image":"product-colors/sAoVP3oWFaxhqdYkSXeNIf6C9kCesTrnLOkuPJBM.jpg","qty":2,"cart_key":"5|XS|Black"}]',
+                'amount' => '0.04',
+                'currency' => 'USD',
+                'md5' => 'demo-order-2',
+                'bill_number' => 'VERCEL-DEMO-002',
+                'status' => 'PAID',
+                'paid_at' => '2026-05-19 11:48:53',
+                'user_id' => null,
+                'created_at' => '2026-05-19 11:48:35',
+                'updated_at' => '2026-05-19 11:48:53',
+            ],
+        ]);
     }
 }

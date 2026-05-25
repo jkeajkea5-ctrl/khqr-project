@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Admin;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Slide;
 use Database\Seeders\VercelBootstrapSeeder;
@@ -65,6 +66,7 @@ class VercelRuntime
 
         if ($defaultConnection !== 'sqlite') {
             self::ensureRealDatabaseSchema($defaultConnection);
+            self::repairLegacyMongoCatalog($defaultConnection);
             self::ensureBootstrapData();
             self::ensureAdminAccount();
             self::ensureManagedMediaInDisk();
@@ -111,6 +113,17 @@ class VercelRuntime
         ]);
     }
 
+    private static function repairLegacyMongoCatalog(string $databaseDriver): void
+    {
+        if ($databaseDriver !== 'mongodb' || !self::hasLegacyMongoCatalog()) {
+            return;
+        }
+
+        Product::query()->delete();
+        Category::query()->delete();
+        Slide::query()->delete();
+    }
+
     private static function ensureBootstrapData(): void
     {
         if (self::hasCatalogData()) {
@@ -118,6 +131,21 @@ class VercelRuntime
         }
 
         app(VercelBootstrapSeeder::class)->run();
+    }
+
+    private static function hasLegacyMongoCatalog(): bool
+    {
+        try {
+            if (Order::query()->exists()) {
+                return false;
+            }
+
+            return Product::query()
+                ->whereIn('category_id', [1, 2, 3, '1', '2', '3'])
+                ->exists();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     private static function ensureAdminAccount(): void

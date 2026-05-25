@@ -13,14 +13,17 @@ class VercelBootstrapSeeder extends Seeder
     public function run(): void
     {
         Model::unguarded(function (): void {
+            $categoryKeys = $this->existingCategoryKeys();
+
             if (!Category::query()->exists()) {
                 foreach ($this->categories() as $category) {
-                    Category::query()->create($category);
+                    $createdCategory = Category::query()->create($category);
+                    $categoryKeys[(string) $createdCategory->slug] = (string) $createdCategory->getKey();
                 }
             }
 
             if (!Product::query()->exists()) {
-                foreach ($this->products() as $product) {
+                foreach ($this->products($categoryKeys) as $product) {
                     Product::query()->create($product);
                 }
             }
@@ -33,25 +36,39 @@ class VercelBootstrapSeeder extends Seeder
         });
     }
 
+    private function existingCategoryKeys(): array
+    {
+        $keys = [];
+
+        foreach (Category::query()->get() as $category) {
+            $slug = trim((string) $category->slug);
+
+            if ($slug === '') {
+                continue;
+            }
+
+            $keys[$slug] = (string) $category->getKey();
+        }
+
+        return $keys;
+    }
+
     private function categories(): array
     {
         return [
             [
-                'id' => 1,
                 'name' => 'T-Shirt',
                 'slug' => 't-shirt',
                 'created_at' => '2026-05-16 10:18:19',
                 'updated_at' => '2026-05-16 10:18:19',
             ],
             [
-                'id' => 2,
                 'name' => 'Pant',
                 'slug' => 'pant',
                 'created_at' => '2026-05-18 20:56:08',
                 'updated_at' => '2026-05-18 20:56:08',
             ],
             [
-                'id' => 3,
                 'name' => 'Sheos',
                 'slug' => 'sheos',
                 'created_at' => '2026-05-18 20:56:20',
@@ -60,13 +77,12 @@ class VercelBootstrapSeeder extends Seeder
         ];
     }
 
-    private function products(): array
+    private function products(array $categoryKeys): array
     {
         return [
             [
-                'id' => 4,
                 'name' => 'T Shirt',
-                'category_id' => 1,
+                'category_id' => $categoryKeys['t-shirt'] ?? null,
                 'description' => 'New Brand',
                 'price' => '0.01',
                 'size' => null,
@@ -83,9 +99,8 @@ class VercelBootstrapSeeder extends Seeder
                 'updated_at' => '2026-05-18 21:20:19',
             ],
             [
-                'id' => 5,
                 'name' => 'Pants',
-                'category_id' => 2,
+                'category_id' => $categoryKeys['pant'] ?? null,
                 'description' => 'Pant',
                 'price' => '0.02',
                 'size' => null,
@@ -102,9 +117,8 @@ class VercelBootstrapSeeder extends Seeder
                 'updated_at' => '2026-05-18 20:57:58',
             ],
             [
-                'id' => 6,
                 'name' => 'Shoes',
-                'category_id' => 3,
+                'category_id' => $categoryKeys['sheos'] ?? null,
                 'description' => 'Shoes',
                 'price' => '0.03',
                 'size' => null,
@@ -127,7 +141,6 @@ class VercelBootstrapSeeder extends Seeder
     {
         return [
             [
-                'id' => 2,
                 'title' => null,
                 'subtitle' => null,
                 'image' => 'slides/xfcBZwVHXqNya9qduKP9a8BTYVmtFtmQAbv7QB41.jpg',
@@ -138,7 +151,6 @@ class VercelBootstrapSeeder extends Seeder
                 'updated_at' => '2026-05-18 11:43:51',
             ],
             [
-                'id' => 3,
                 'title' => null,
                 'subtitle' => null,
                 'image' => 'slides/AMdAPzFjXCZ4IpLaxkX4swo4NWzMApfkCGdpm1Ox.jpg',

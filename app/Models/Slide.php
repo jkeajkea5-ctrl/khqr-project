@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Support\AppModel;
 use App\Support\MediaPath;
-use Illuminate\Database\Eloquent\Model;
 
-class Slide extends Model
+class Slide extends AppModel
 {
     protected $fillable = ['title', 'subtitle', 'image', 'link', 'is_active', 'position'];
 

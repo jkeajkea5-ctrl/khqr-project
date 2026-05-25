@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Support\AppModel;
 use App\Support\MediaPath;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Product extends Model
+class Product extends AppModel
 {
    protected $fillable = ['name','category_id','description','price','image','size','color','sizes','colors'];
 

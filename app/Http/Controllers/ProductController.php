@@ -20,7 +20,7 @@ class ProductController extends Controller
             if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory->id);
             } else {
-                $query->whereRaw('1 = 0');
+                $query->where('id', '__missing_category__');
             }
         }
 
@@ -35,7 +35,16 @@ class ProductController extends Controller
         $products = $query->get();
         $this->appendTotalBought($products);
 
-        $categories = Category::withCount('products')->orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
+        $counts = Product::query()
+            ->whereIn('category_id', $categories->pluck('id')->all())
+            ->get(['category_id'])
+            ->countBy(fn (Product $product): string => (string) $product->category_id);
+        $categories->transform(function (Category $category) use ($counts): Category {
+            $category->setAttribute('products_count', (int) ($counts[(string) $category->id] ?? 0));
+
+            return $category;
+        });
         $slides = Slide::where('is_active', true)->orderBy('position')->get();
 
         return view('products.index', compact('products', 'slides', 'categories', 'selectedCategory'));
@@ -55,7 +64,8 @@ class ProductController extends Controller
         }
 
         $productIds = $products->pluck('id')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn ($id) => $this->normalizeIdentifier($id))
+            ->filter()
             ->all();
 
         $trackedIds = array_fill_keys($productIds, true);
@@ -73,9 +83,9 @@ class ProductController extends Controller
 
             if ($items !== []) {
                 foreach ($items as $item) {
-                    $itemProductId = (int) ($item['id'] ?? 0);
+                    $itemProductId = $this->normalizeIdentifier($item['id'] ?? null);
 
-                    if (!isset($trackedIds[$itemProductId])) {
+                    if ($itemProductId === null || !isset($trackedIds[$itemProductId])) {
                         continue;
                     }
 
@@ -89,15 +99,27 @@ class ProductController extends Controller
                 continue;
             }
 
-            $orderProductId = (int) $order->product_id;
+            $orderProductId = $this->normalizeIdentifier($order->product_id);
 
-            if (isset($trackedIds[$orderProductId])) {
+            if ($orderProductId !== null && isset($trackedIds[$orderProductId])) {
                 $purchaseCounts[$orderProductId] += 1;
             }
         }
 
         $products->each(function (Product $product) use ($purchaseCounts): void {
-            $product->setAttribute('total_bought', $purchaseCounts[(int) $product->id] ?? 0);
+            $key = $this->normalizeIdentifier($product->id);
+            $product->setAttribute('total_bought', $key !== null ? ($purchaseCounts[$key] ?? 0) : 0);
         });
+    }
+
+    private function normalizeIdentifier(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 }

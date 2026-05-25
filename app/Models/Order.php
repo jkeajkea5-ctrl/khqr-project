@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Support\AppModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 
-class Order extends Model
+class Order extends AppModel
 {
     protected $fillable = [
         'user_id','product_id','product_name','amount','currency','md5','bill_number','status','paid_at','items'

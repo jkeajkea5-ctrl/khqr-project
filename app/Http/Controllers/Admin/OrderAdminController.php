@@ -135,8 +135,9 @@ class OrderAdminController extends Controller
             $orderUnits = 0;
             $items = is_array($order->items) ? $order->items : [];
 
-            if ($order->user_id) {
-                $customerOrders[(int) $order->user_id] = ($customerOrders[(int) $order->user_id] ?? 0) + 1;
+            $userKey = $this->normalizeIdentifier($order->user_id);
+            if ($userKey !== null) {
+                $customerOrders[$userKey] = ($customerOrders[$userKey] ?? 0) + 1;
             }
 
             if ($items !== []) {
@@ -305,10 +306,10 @@ class OrderAdminController extends Controller
 
     private function buildProductKey(mixed $productId, mixed $productName, int $orderId): string
     {
-        $productId = (int) $productId;
+        $productKey = $this->normalizeIdentifier($productId);
 
-        if ($productId > 0) {
-            return 'product-'.$productId;
+        if ($productKey !== null) {
+            return 'product-'.$productKey;
         }
 
         $normalizedName = mb_strtolower(trim((string) $productName));
@@ -318,6 +319,17 @@ class OrderAdminController extends Controller
         }
 
         return 'order-'.$orderId;
+    }
+
+    private function normalizeIdentifier(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     private function accumulateWindowStats(array &$stats, float $revenue, int $units): void

@@ -11,6 +11,8 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-gridfs": "3.31",
+        "mongodb/laravel-mongodb": "5.7",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {

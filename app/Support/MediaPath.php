@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 class MediaPath
 {
-    private const PUBLIC_DISK_DIRECTORIES = [
+    private const MANAGED_MEDIA_DIRECTORIES = [
         'admins/',
         'products/',
         'product-colors/',
@@ -33,8 +33,14 @@ class MediaPath
             $path = (string) parse_url($value, PHP_URL_PATH);
             $host = (string) parse_url($value, PHP_URL_HOST);
 
-            if ($path !== '' && str_contains($path, '/storage/') && self::isOwnHost($host)) {
-                return ltrim(Str::after($path, '/storage/'), '/');
+            if ($path !== '' && self::isOwnHost($host)) {
+                if (str_contains($path, '/storage/')) {
+                    return ltrim(Str::after($path, '/storage/'), '/');
+                }
+
+                if (str_contains($path, '/vercel-storage/')) {
+                    return ltrim(Str::after($path, '/vercel-storage/'), '/');
+                }
             }
 
             return $value;
@@ -44,8 +50,16 @@ class MediaPath
             return ltrim(Str::after($value, '/storage/'), '/');
         }
 
+        if (str_contains($value, '/vercel-storage/')) {
+            return ltrim(Str::after($value, '/vercel-storage/'), '/');
+        }
+
         if (Str::startsWith($value, 'storage/')) {
             return ltrim(Str::after($value, 'storage/'), '/');
+        }
+
+        if (Str::startsWith($value, 'vercel-storage/')) {
+            return ltrim(Str::after($value, 'vercel-storage/'), '/');
         }
 
         return ltrim($value, '/');
@@ -77,18 +91,25 @@ class MediaPath
             return $normalized;
         }
 
-        if (self::isPublicDiskPath($normalized)) {
-            $directory = self::isVercelRuntime() ? 'vercel-storage/' : 'storage/';
-
-            return asset($directory.$normalized);
+        if (self::isManagedMediaPath($normalized)) {
+            return MediaStorage::url($normalized);
         }
 
         return asset($normalized);
     }
 
-    private static function isPublicDiskPath(string $path): bool
+    public static function isManagedPath(mixed $path): bool
     {
-        return Str::startsWith($path, self::PUBLIC_DISK_DIRECTORIES);
+        if (!is_string($path)) {
+            return false;
+        }
+
+        return self::isManagedMediaPath($path);
+    }
+
+    private static function isManagedMediaPath(string $path): bool
+    {
+        return Str::startsWith($path, self::MANAGED_MEDIA_DIRECTORIES);
     }
 
     private static function isOwnHost(string $host): bool
@@ -118,10 +139,5 @@ class MediaPath
         }
 
         return in_array($host, array_unique($knownHosts), true);
-    }
-
-    private static function isVercelRuntime(): bool
-    {
-        return filled(env('VERCEL'));
     }
 }

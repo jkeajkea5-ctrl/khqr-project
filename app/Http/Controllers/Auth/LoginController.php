@@ -12,11 +12,19 @@ class LoginController extends Controller
 {
     public function show()
     {
+        if (Admin::query()->count() === 0 && !session()->has('error')) {
+            return redirect()->route('admin.setup');
+        }
+
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
+        if (Admin::query()->count() === 0) {
+            return redirect()->route('admin.setup');
+        }
+
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',

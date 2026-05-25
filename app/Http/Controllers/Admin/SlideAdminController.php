@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Slide;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 
 class SlideAdminController extends Controller
@@ -30,7 +31,7 @@ class SlideAdminController extends Controller
             'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
-        $path = $request->file('image')->store('slides', 'public');
+        $path = MediaStorage::store($request->file('image'), 'slides');
 
         Slide::create([
             'title' => $validated['title'] ?? null,
@@ -69,7 +70,7 @@ class SlideAdminController extends Controller
         ];
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('slides', 'public');
+            $path = MediaStorage::store($request->file('image'), 'slides');
             $data['image'] = $path;
         }
 

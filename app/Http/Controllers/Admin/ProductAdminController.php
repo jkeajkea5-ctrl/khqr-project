@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProductAdminController extends Controller
 {
@@ -26,7 +28,7 @@ class ProductAdminController extends Controller
     {
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
-            'category_id' => 'nullable|exists:catagories,id',
+            'category_id' => ['nullable', Rule::exists('catagories', 'id')],
             'description' => 'nullable|string|max:2000',
             'price'       => 'required|numeric|min:0.01',
             'size'        => 'nullable|string|max:50',
@@ -41,7 +43,7 @@ class ProductAdminController extends Controller
             'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:8192',
         ]);
 
-        $path = $request->file('image')->store('products', 'public');
+        $path = MediaStorage::store($request->file('image'), 'products');
         $colors = $this->buildColors($request);
 
         Product::create([
@@ -70,7 +72,7 @@ class ProductAdminController extends Controller
     {
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
-            'category_id' => 'nullable|exists:catagories,id',
+            'category_id' => ['nullable', Rule::exists('catagories', 'id')],
             'description' => 'nullable|string|max:2000',
             'price'       => 'required|numeric|min:0.01',
             'size'        => 'nullable|string|max:50',
@@ -101,7 +103,7 @@ class ProductAdminController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
+            $path = MediaStorage::store($request->file('image'), 'products');
             $data['image'] = $path;
         }
 
@@ -131,7 +133,7 @@ class ProductAdminController extends Controller
 
             $imageUrl = null;
             if ($imageFile) {
-                $path = $imageFile->store('product-colors', 'public');
+                $path = MediaStorage::store($imageFile, 'product-colors');
                 $imageUrl = $path;
             }
 

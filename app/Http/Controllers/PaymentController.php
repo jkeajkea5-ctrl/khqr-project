@@ -35,6 +35,7 @@ class PaymentController extends Controller
         }
 
         return [
+            'token' => trim((string) config('services.bakong.token', '')),
             'account_id' => trim((string) config('services.bakong.account_id', '')),
             'merchant_name' => trim((string) config('services.bakong.merchant_name', '')),
             'merchant_city' => trim((string) config('services.bakong.merchant_city', 'Phnom Penh')),
@@ -83,6 +84,10 @@ class PaymentController extends Controller
         $billNumber = $billNumber ?: $this->buildBillNumber();
 
         try {
+            if ($merchant['token'] === '') {
+                throw new \RuntimeException('Bakong token is not configured for this deployment.');
+            }
+
             if ($merchant['account_id'] === '') {
                 throw new \RuntimeException('Bakong account ID is not configured.');
             }
@@ -343,12 +348,15 @@ class PaymentController extends Controller
             return response()->json($result);
 
         } catch (\Exception $e) {
-            $status = str_contains(strtolower($e->getMessage()), 'unable to reach the bakong api')
+            $message = $e->getMessage();
+            $normalizedMessage = strtolower($message);
+            $status = str_contains($normalizedMessage, 'unable to reach the bakong api')
+                || str_contains($normalizedMessage, 'not configured')
                 ? 503
                 : 500;
 
             return response()->json([
-                'error' => $e->getMessage(),
+                'error' => $message,
                 'responseCode' => 1,
             ], $status);
         }

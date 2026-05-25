@@ -2,6 +2,14 @@
 
 use Illuminate\Support\Str;
 
+$mongoDsn = env('DB_URI', env('MONGODB_URI'));
+$mongoDatabase = env('MONGODB_DATABASE') ?: env('DB_DATABASE');
+
+if (!is_string($mongoDatabase) || trim($mongoDatabase) === '') {
+    $mongoPath = is_string($mongoDsn) ? trim((string) parse_url($mongoDsn, PHP_URL_PATH), '/') : '';
+    $mongoDatabase = $mongoPath !== '' ? $mongoPath : 'khqr-bakong';
+}
+
 return [
 
     /*
@@ -111,6 +119,12 @@ return [
             'prefix_indexes' => true,
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        ],
+
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'dsn' => $mongoDsn,
+            'database' => $mongoDatabase,
         ],
 
     ],

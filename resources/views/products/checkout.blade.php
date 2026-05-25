@@ -106,6 +106,7 @@ const fallbackOrderId = @json((string) ($orderId ?? ''));
 const invoiceBaseUrl = @json(url('/invoice'));
 const homeUrl = @json(route('home'));
 let verifyInFlight = false;
+let verificationEnabled = true;
 
 const formatTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -132,8 +133,10 @@ const clearVerificationError = () => {
     errorElement.classList.add('d-none');
 };
 
+const isConfigurationError = (message) => /not configured/i.test(message);
+
 const pollVerification = async () => {
-    if (verifyInFlight) return;
+    if (verifyInFlight || !verificationEnabled) return;
 
     verifyInFlight = true;
 
@@ -168,8 +171,20 @@ const pollVerification = async () => {
 
         setStatus('QR generated. Waiting for Bakong payment confirmation...');
     } catch (error) {
-        setStatus('Bakong verification is temporarily unavailable.');
-        setVerificationError(error.message || 'Unable to verify payment right now.');
+        const message = error.message || 'Unable to verify payment right now.';
+
+        if (isConfigurationError(message)) {
+            verificationEnabled = false;
+            clearInterval(timer);
+            setStatus('Bakong verification is not configured for this deployment.');
+            if (retryButton) {
+                retryButton.disabled = true;
+            }
+        } else {
+            setStatus('Bakong verification is temporarily unavailable.');
+        }
+
+        setVerificationError(message);
     } finally {
         verifyInFlight = false;
     }
@@ -181,7 +196,7 @@ const timer = setInterval(() => {
     if (countdownElement) countdownElement.textContent = formattedTime;
     if (timeLeftText) timeLeftText.textContent = formattedTime;
 
-    if (timeLeft > 0) {
+    if (timeLeft > 0 && verificationEnabled) {
         pollVerification();
     }
 

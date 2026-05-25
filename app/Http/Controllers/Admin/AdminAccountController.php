@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminAccountController extends Controller
@@ -35,7 +35,7 @@ class AdminAccountController extends Controller
         $data = $validated;
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('admins', 'public');
+            $data['photo'] = MediaStorage::store($request->file('photo'), 'admins');
         }
 
         Admin::create($data);
@@ -92,7 +92,7 @@ class AdminAccountController extends Controller
 
         if ($request->hasFile('photo')) {
             $this->deletePhotoFile($admin);
-            $admin->photo = $request->file('photo')->store('admins', 'public');
+            $admin->photo = MediaStorage::store($request->file('photo'), 'admins');
         }
 
         $admin->save();
@@ -132,7 +132,7 @@ class AdminAccountController extends Controller
         $photoPath = $admin->photoStoragePath();
 
         if ($photoPath) {
-            Storage::disk('public')->delete($photoPath);
+            MediaStorage::delete($photoPath);
         }
     }
 }

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserOrderController;
 use App\Http\Controllers\Auth\LoginController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Admin\CategoryAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\OrderAdminController;
 use App\Http\Controllers\Admin\SlideAdminController;
+use App\Http\Controllers\Admin\SetupController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Models\Admin;
 
@@ -22,6 +24,7 @@ use App\Models\Admin;
 */
 Route::get('/', [ProductController::class, 'index'])->name('home');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
+Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->name('media.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +71,8 @@ Route::middleware('user')->group(function () {
 Route::get('/admin/login', [LoginController::class, 'show'])->name('admin.login');
 Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
+Route::get('/admin/setup', [SetupController::class, 'show'])->name('admin.setup');
+Route::post('/admin/setup', [SetupController::class, 'store'])->name('admin.setup.store');
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

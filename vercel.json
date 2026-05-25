@@ -6,10 +6,13 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
+    "DB_CONNECTION": "mongodb",
     "LOG_CHANNEL": "stderr",
     "SESSION_DRIVER": "cookie",
     "CACHE_STORE": "array",
     "QUEUE_CONNECTION": "sync",
+    "MEDIA_DISK": "gridfs",
+    "MONGODB_DATABASE": "khqr-bakong",
     "VIEW_COMPILED_PATH": "/tmp/views",
     "APP_PACKAGES_CACHE": "/tmp/bootstrap/cache/packages.php",
     "APP_SERVICES_CACHE": "/tmp/bootstrap/cache/services.php"

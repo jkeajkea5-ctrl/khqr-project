@@ -39,6 +39,35 @@ if (isset($_GET['__diag'])) {
     return;
 }
 
+if (isset($_GET['__bootstrap_diag'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    try {
+        $kernel = $app->make(HttpKernel::class);
+        $kernel->bootstrap();
+
+        echo json_encode([
+            'bootstrapped' => true,
+            'view_provider_loaded' => $app->providerIsLoaded(Illuminate\View\ViewServiceProvider::class),
+            'view_bound' => $app->bound('view'),
+            'loaded_providers' => array_keys($app->getLoadedProviders()),
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        echo json_encode([
+            'bootstrapped' => false,
+            'exception' => get_class($e),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile().':'.$e->getLine(),
+            'view_provider_loaded' => $app->providerIsLoaded(Illuminate\View\ViewServiceProvider::class),
+            'view_bound' => $app->bound('view'),
+            'loaded_providers' => array_keys($app->getLoadedProviders()),
+            'trace' => $e->getTraceAsString(),
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    return;
+}
+
 try {
     $kernel = $app->make(HttpKernel::class);
     $request = Request::capture();

@@ -3,6 +3,15 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
+  "env": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false",
+    "LOG_CHANNEL": "stderr",
+    "SESSION_DRIVER": "cookie",
+    "CACHE_STORE": "array",
+    "QUEUE_CONNECTION": "sync",
+    "VIEW_COMPILED_PATH": "/tmp/views"
+  },
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.6.2",

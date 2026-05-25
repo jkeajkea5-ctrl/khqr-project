@@ -22,6 +22,14 @@
   },
   "routes": [
     {
+      "src": "^/$",
+      "dest": "/api/index.php"
+    },
+    {
+      "src": "^/index\\.php$",
+      "status": 404
+    },
+    {
       "handle": "filesystem"
     },
     {

@@ -78,7 +78,9 @@ class MediaPath
         }
 
         if (self::isPublicDiskPath($normalized)) {
-            return asset('storage/'.$normalized);
+            $directory = self::isVercelRuntime() ? 'vercel-storage/' : 'storage/';
+
+            return asset($directory.$normalized);
         }
 
         return asset($normalized);
@@ -116,5 +118,10 @@ class MediaPath
         }
 
         return in_array($host, array_unique($knownHosts), true);
+    }
+
+    private static function isVercelRuntime(): bool
+    {
+        return filled(env('VERCEL'));
     }
 }

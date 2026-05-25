@@ -18,12 +18,14 @@ VercelRuntime::configureEnvironment();
 /** @var Application $app */
 $app = require __DIR__.'/../bootstrap/app.php';
 
+$request = Request::capture();
+$app->instance('request', $request);
+
 $kernel = $app->make(HttpKernel::class);
 $kernel->bootstrap();
 
 VercelRuntime::prepareDatabase($app);
 
-$request = Request::capture();
 $response = $kernel->handle($request);
 $response->send();
 $kernel->terminate($request, $response);

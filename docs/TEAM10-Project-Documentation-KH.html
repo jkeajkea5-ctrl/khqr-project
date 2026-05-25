@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ឯកសារគម្រោង TEAM10</title>
+    <link rel="stylesheet" href="assets/documentation.css">
+</head>
+<body class="lang-kh">
+    <div class="page">
+        <section class="cover">
+            <div class="cover-top">
+                <div class="cover-mark">
+                    <img src="assets/team10-logo.png" alt="TEAM10 logo">
+                    <div>
+                        <div class="eyebrow">ឯកសារគម្រោង</div>
+                        <div style="margin-top:10px;font-size:14px;color:rgba(255,255,255,0.78);">បង្កើតឡើងវិញនៅថ្ងៃទី 22 ឧសភា 2026</div>
+                    </div>
+                </div>
+                <div style="text-align:right;font-size:14px;color:rgba(255,255,255,0.78);">
+                    Laravel 12<br>
+                    លំហូរទូទាត់ KHQR<br>
+                    ផ្ទាំងវិភាគ Admin
+                </div>
+            </div>
+
+            <h1>ឯកសារគម្រោង TEAM10 Clothing Store</h1>
+            <p>
+                ឯកសារនេះសង្ខេបអំពីរចនាប័ទ្មរបស់គម្រោង ពណ៌ អក្សរ
+                និងដំណើរការសំខាន់ៗរបស់ប្រព័ន្ធ ចាប់ពីទំព័រហាង ការទូទាត់ Checkout
+                ការបង្ហាញវិក្កយបត្រ រហូតដល់ផ្នែកគ្រប់គ្រង Admin។
+                រូបភាពទាំងអស់នៅក្នុងរបាយការណ៍នេះយកមកពី <code>docs/assets</code>។
+            </p>
+
+            <div class="cover-grid">
+                <div class="cover-stat">
+                    អក្សរចម្បង
+                    <strong>Space Grotesk</strong>
+                </div>
+                <div class="cover-stat">
+                    អក្សរផ្នែកចូលប្រព័ន្ធ
+                    <strong>Poppins</strong>
+                </div>
+                <div class="cover-stat">
+                    ជ្រុងរួម
+                    <strong>2px base override</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>1. សេចក្ដីសង្ខេបគម្រោង</h2>
+            <p class="lead">
+                TEAM10 Clothing Store គឺជាកម្មវិធីវេបដែលសង់ដោយ Laravel
+                មាន storefront សម្រាប់អតិថិជន ការចុះឈ្មោះ និងចូលគណនី
+                កន្រ្តកទំនិញក្នុង session ការទូទាត់ KHQR ការបង្ហាញវិក្កយបត្រ
+                និង workspace សម្រាប់ Admin ដើម្បីគ្រប់គ្រងផលិតផល ប្រភេទ ស្លាយ orders និងបុគ្គលិក។
+            </p>
+
+            <div class="grid-2">
+                <div class="summary-card">
+                    <h3>បច្ចេកវិទ្យា និង package</h3>
+                    <div class="chip-row">
+                        <span class="chip">Laravel 12</span>
+                        <span class="chip">PHP 8.2</span>
+                        <span class="chip">Bootstrap 5.3</span>
+                        <span class="chip">Vite 7</span>
+                        <span class="chip">KHQR Gateway</span>
+                        <span class="chip">Simple QRCode</span>
+                        <span class="chip">Bootstrap Icons</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <h3>មុខងារសំខាន់ៗ</h3>
+                    <ul>
+                        <li>ទំព័រហាងសម្រាប់មើលផលិតផល និង filter តាម category។</li>
+                        <li>ការចុះឈ្មោះ និងចូលគណនីដោយលេខទូរស័ព្ទ ឬអ៊ីមែល។</li>
+                        <li>ទំព័រលម្អិតផលិតផលសម្រាប់ជ្រើសទំហំ និងពណ៌។</li>
+                        <li>កន្រ្តក Checkout ការទូទាត់ KHQR និងវិក្កយបត្របន្ទាប់ពីបង់ប្រាក់។</li>
+                        <li>Dashboard សម្រាប់វិភាគចំណូល ចំនួនលក់ និងស្ថានភាព Order។</li>
+                        <li>ការគ្រប់គ្រងតាមតួនាទីរបស់ Admin, Stock Controller និង Employee។</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. ប្រព័ន្ធពណ៌ និងអក្សរ</h2>
+            <p class="lead">
+                គម្រោងនេះប្រើពណ៌ខៀវជាចម្បង ជាមួយផ្ទៃស សម្រាប់ content
+                និងអក្សរពណ៌ slate សម្រាប់ព័ត៌មានជំនួយ។ អក្សរត្រូវបានបែងចែករវាង
+                ផ្នែកកម្មវិធីសំខាន់ និងផ្នែក authentication។
+            </p>
+
+            <div class="swatch-grid">
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#28559A;"></div>
+                    <div class="swatch-body">
+                        <strong>ខៀវចម្បង</strong>
+                        <code>#28559A</code>
+                        <p>ប្រើសម្រាប់ប៊ូតុង ចំណុចសំខាន់ៗ និងការបង្ហាញនៅលើ Dashboard។</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#1F3E77;"></div>
+                    <div class="swatch-body">
+                        <strong>ខៀវជ្រៅ</strong>
+                        <code>#1F3E77</code>
+                        <p>ប្រើសម្រាប់ hover state និង contrast នៅក្នុង checkout និង admin។</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#3778C2;"></div>
+                    <div class="swatch-body">
+                        <strong>ខៀវ accent</strong>
+                        <code>#3778C2</code>
+                        <p>ប្រើសម្រាប់ chip, chart, focus state និងការបង្ហាញបន្ទាប់បន្សំ។</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#150734;"></div>
+                    <div class="swatch-body">
+                        <strong>Brand ink</strong>
+                        <code>#150734</code>
+                        <p>ពណ៌អក្សរចម្បង និង brand tone នៅលើ storefront។</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#F3F6FB;"></div>
+                    <div class="swatch-body">
+                        <strong>ផ្ទៃខាងក្រោយ</strong>
+                        <code>#F3F6FB</code>
+                        <p>ប្រើជាផ្ទៃរួមសម្រាប់ទំព័រហាង ផ្នែក admin និង auth page។</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#64748B;"></div>
+                    <div class="swatch-body">
+                        <strong>Muted slate</strong>
+                        <code>#64748B</code>
+                        <p>ប្រើសម្រាប់ subtitle, helper text និងព័ត៌មាន meta។</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="type-grid" style="margin-top:18px;">
+                <div class="type-card">
+                    <h3>អក្សរផ្នែកកម្មវិធី</h3>
+                    <div class="specimen-grotesk">Space Grotesk</div>
+                    <p class="note">
+                        ប្រើនៅលើ storefront និង admin panel ដើម្បីឲ្យ UI មើលទំនើប និងច្បាស់។
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>អក្សរផ្នែកចូលគណនី</h3>
+                    <div class="specimen-poppins">Poppins</div>
+                    <p class="note">
+                        ប្រើនៅលើ admin login និង user authentication ដើម្បីឲ្យ form មើលស្អាត និងទន់ភ្លន់។
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>Corner system</h3>
+                    <div class="specimen-grotesk" style="font-size:24px;">2px ទូទាំងប្រព័ន្ធ</div>
+                    <p class="note">
+                        Layout រួមបង្ខំឲ្យ buttons, cards, inputs និង rounded utilities ប្រើជ្រុងតូច 2px។
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>ប្រព័ន្ធរូបសញ្ញា</h3>
+                    <div class="specimen-grotesk" style="font-size:24px;">Bootstrap Icons</div>
+                    <p class="note">
+                        ប្រើសម្រាប់ navigation, action buttons, cart states, analytics និង form controls។
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section page-break">
+            <h2>3. ដំណើរការគម្រោង</h2>
+            <p class="lead">
+                ប្រព័ន្ធនេះមានលំហូរសំខាន់ពីរ គឺដំណើរទិញទំនិញរបស់អតិថិជន
+                និងលំហូរការងាររបស់ Admin។ រូបខាងក្រោមបង្ហាញដំណើរការសរុបទាំងមូល។
+            </p>
+
+            <div class="figure">
+                <img src="assets/process-flow-kh.svg" alt="Khmer process flow">
+                <div class="caption">ផែនទីសង្ខេបនៃការទិញទំនិញ ការទូទាត់ KHQR និងការគ្រប់គ្រងផ្នែក Admin។</div>
+            </div>
+
+            <div class="process-list">
+                <div class="process-card">
+                    <h3>លំហូរអតិថិជន</h3>
+                    <ol>
+                        <li>អតិថិជនចូលមើលទំព័រមេ ហើយស្វែងរកផលិតផលតាម category ឬ search។</li>
+                        <li>នៅពេលត្រូវ Checkout អតិថិជនអាចចុះឈ្មោះ ឬចូលគណនី។</li>
+                        <li>អតិថិជនមើលទំព័រលម្អិត ជ្រើសទំហំ និងពណ៌ រួចបន្ថែមចូលកន្រ្តក។</li>
+                        <li>បន្ទាប់មកពិនិត្យកន្រ្តក ហើយបន្តទៅអេក្រង់ទូទាត់ KHQR។</li>
+                        <li>ប្រព័ន្ធបង្កើត QR code រក្សាទុក pending order ហើយរង់ចាំការផ្ទៀងផ្ទាត់ពី Bakong។</li>
+                        <li>បន្ទាប់ពីបង់ប្រាក់ជោគជ័យ order នឹងក្លាយជា paid ហើយបង្ហាញវិក្កយបត្រ។</li>
+                    </ol>
+                </div>
+                <div class="process-card">
+                    <h3>លំហូរ Admin</h3>
+                    <ol>
+                        <li>Admin ចូលប្រព័ន្ធតាមទំព័រចូល back-office ដែលបានបំបែកចេញ។</li>
+                        <li>Dashboard បង្ហាញចំណូល និន្នាការ paid orders top products និង order mix។</li>
+                        <li>ផ្នែក catalog គ្រប់គ្រង products, categories, colors, sizes និង slides។</li>
+                        <li>ផ្នែកប្រតិបត្តិការ តាមដាន order history, paid payments និងការចូលប្រើរបស់បុគ្គលិក។</li>
+                        <li>Role checks កំណត់ថានរណាអាច create, edit ឬ delete resource នីមួយៗ។</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>4. រូបភាពផ្នែកអតិថិជន</h2>
+            <p class="lead">
+                រូបភាពខាងក្រោមបង្ហាញលំហូរផ្នែកអតិថិជនដោយប្រើ screenshot ថ្មីៗពី <code>docs/assets</code>។
+                រូប T-shirt ថ្មីត្រូវបានបង្ហាញទាំងនៅលើ storefront និង admin product list។
+            </p>
+
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <img src="assets/main%20page.png" alt="Main page">
+                    <div class="gallery-body">
+                        <h3>ទំព័រមេ</h3>
+                        <p>បង្ហាញ category filters, product cards និងរូប T-shirt ថ្មីនៅក្នុង storefront listing។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/user%20sign%20up.png" alt="User sign up">
+                    <div class="gallery-body">
+                        <h3>ទំព័រចុះឈ្មោះ</h3>
+                        <p>Form សម្រាប់បង្កើតគណនីថ្មី ដោយមានលេខទូរស័ព្ទ អ៊ីមែលជាជម្រើស និងពាក្យសម្ងាត់។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/user%20sign%20in.png" alt="User sign in">
+                    <div class="gallery-body">
+                        <h3>ទំព័រចូលគណនី</h3>
+                        <p>អនុញ្ញាតឲ្យអ្នកប្រើចូលតាមលេខទូរស័ព្ទ ឬអ៊ីមែល។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/detail.png" alt="Detail page">
+                    <div class="gallery-body">
+                        <h3>ទំព័រលម្អិតផលិតផល</h3>
+                        <p>បង្ហាញរូបផលិតផល ការជ្រើសទំហំ ពណ៌ និងប៊ូតុងទិញ។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/check%20out.png" alt="Cart page">
+                    <div class="gallery-body">
+                        <h3>កន្រ្តកទំនិញ</h3>
+                        <p>អតិថិជនអាចពិនិត្យទំនិញ កែចំនួន លុប ឬបន្តទៅការទូទាត់។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/paying.png" alt="KHQR payment page">
+                    <div class="gallery-body">
+                        <h3>ទំព័រទូទាត់ KHQR</h3>
+                        <p>បង្ហាញ QR, reference number, total amount និងស្ថានភាពផ្ទៀងផ្ទាត់ការទូទាត់។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/paid.png" alt="Invoice page">
+                    <div class="gallery-body">
+                        <h3>វិក្កយបត្របន្ទាប់ពីបង់ប្រាក់</h3>
+                        <p>បង្ហាញព័ត៌មានអតិថិជន បញ្ជីទំនិញ និងស្ថានភាព PAID បន្ទាប់ពីបង់ប្រាក់ជោគជ័យ។</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>5. រូបភាពផ្នែក Admin</h2>
+            <p class="lead">
+                រូបភាពទាំងនេះបង្ហាញផ្នែកគ្រប់គ្រងរបស់ប្រព័ន្ធ រួមមាន Dashboard, catalog tools និង order operations។
+            </p>
+
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <img src="assets/admin-login.png" alt="Admin login">
+                    <div class="gallery-body">
+                        <h3>Admin login</h3>
+                        <p>ទំព័រចូលប្រព័ន្ធសម្រាប់ back-office ជាមួយ layout ពណ៌ខៀវ និង form ច្បាស់លាស់។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/admin-dashboard.png" alt="Admin dashboard">
+                    <div class="gallery-body">
+                        <h3>Admin dashboard</h3>
+                        <p>បង្ហាញចំណូល និន្នាការ top products payment status និងសញ្ញាប្រតិបត្តិការសម្រាប់ staff។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/product.png" alt="Admin products page">
+                    <div class="gallery-body">
+                        <h3>គ្រប់គ្រងផលិតផល</h3>
+                        <p>តារាងផលិតផលបង្ហាញរូប T-shirt ថ្មី ទំហំ ពណ៌ និង action buttons។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/category.png" alt="Admin category page">
+                    <div class="gallery-body">
+                        <h3>គ្រប់គ្រង Category</h3>
+                        <p>បញ្ជី category ជាមួយចំនួន product និងការបន្ថែម កែប្រែ និងលុប។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/slide.png" alt="Admin slides page">
+                    <div class="gallery-body">
+                        <h3>គ្រប់គ្រង Slides</h3>
+                        <p>ការគ្រប់គ្រង slideshow នៅទំព័រមេ ជាមួយ preview, position, status និង controls។</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/order.png" alt="Admin orders page">
+                    <div class="gallery-body">
+                        <h3>គ្រប់គ្រង Orders</h3>
+                        <p>បង្ហាញ Product, Amount, Status, MD5 និងពេលវេលាបង្កើត ឬបង់ប្រាក់។</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>6. ឯកសារកូដសំខាន់ៗ</h2>
+            <p class="lead">
+                ឯកសារខាងក្រោមជាផ្នែកសំខាន់សម្រាប់ design system, data flow និងដំណើរការដែលបានពិពណ៌នានៅក្នុងរបាយការណ៍នេះ។
+            </p>
+
+            <div class="file-list">
+                <div class="file-item">
+                    <code>resources/views/layouts/app.blade.php</code>
+                    Layout រួម និងការបង្ខំ 2px radius ទូទាំងប្រព័ន្ធ។
+                </div>
+                <div class="file-item">
+                    <code>resources/views/products/_styles.blade.php</code>
+                    កំណត់ពណ៌ storefront, buttons, cards, responsive UI និង component styles។
+                </div>
+                <div class="file-item">
+                    <code>resources/views/admin/layouts/app.blade.php</code>
+                    Layout របស់ Admin, navigation, typography, card system និង action buttons។
+                </div>
+                <div class="file-item">
+                    <code>resources/views/auth/login.blade.php</code>
+                    ទំព័រ admin login និង UI សម្រាប់ការបង្ហាញសារ session expired។
+                </div>
+                <div class="file-item">
+                    <code>routes/web.php</code>
+                    កំណត់ public routes, user auth, cart, checkout និង admin routes។
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/ProductController.php</code>
+                    គ្រប់គ្រង listing, search, category filter និង total bought។
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/CartController.php</code>
+                    គ្រប់គ្រងការបន្ថែម កែប្រែ លុប និងសម្អាត cart ក្នុង session។
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/PaymentController.php</code>
+                    គ្រប់គ្រងការបង្កើត KHQR, pending order, verification, invoice និង Telegram notification។
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/UserAuthController.php</code>
+                    គ្រប់គ្រង register, login, normalize phone/email និង logout របស់អ្នកប្រើ។
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/Admin/OrderAdminController.php</code>
+                    គ្រប់គ្រង dashboard analytics, revenue, chart និង operational reports។
+                </div>
+            </div>
+
+            <div class="footer">
+                កំណែភាសាខ្មែរ - ឯកសារគម្រោង TEAM10 Clothing Store ជាមួយរចនាប័ទ្មចាស់ និងការជួសជុល Khmer process flow។
+            </div>
+        </section>
+    </div>
+</body>
+</html>

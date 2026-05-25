@@ -1,0 +1,1423 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+ <title>TEAM10 Clothing Store</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="icon" type="image/png" href="http://127.0.0.1:8000/brand/team10-logo.png">
+ <link rel="shortcut icon" href="http://127.0.0.1:8000/brand/team10-logo.png">
+ <link rel="apple-touch-icon" href="http://127.0.0.1:8000/brand/team10-logo.png">
+ <link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+ <link
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+rel="stylesheet">
+     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+        --admin-ink: #150734;
+        --admin-primary: #28559A;
+        --admin-accent: #3778C2;
+        --admin-bg: #f3f6fb;
+        --admin-card: #ffffff;
+        --admin-text: #0f172a;
+        --admin-muted: #64748b;
+        --admin-border: rgba(21, 7, 52, 0.08);
+        --admin-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .admin-shell {
+        font-family: 'Space Grotesk', sans-serif;
+        min-height: 100vh;
+        background: var(--admin-bg);
+        color: var(--admin-text);
+    }
+
+    .admin-sidebar {
+        background: #ffffff;
+        border-right: 1px solid var(--admin-border);
+        transition: all 0.3s ease;
+        z-index: 1100;
+    }
+
+    .admin-main {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .admin-nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        color: var(--admin-ink);
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .admin-nav a:hover,
+    .admin-nav a.active {
+        background: rgba(55, 120, 194, 0.12);
+        color: var(--admin-primary);
+    }
+
+    .menu-trigger {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--admin-primary);
+        color: #ffffff;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        border: none;
+        z-index: 1200;
+        box-shadow: 0 10px 24px rgba(40, 85, 154, 0.35);
+    }
+
+    @media (min-width: 992px) {
+        .admin-shell .row.g-0 { display: flex; flex-wrap: nowrap; }
+        .admin-sidebar { position: sticky; top: 0; width: 200px; height: 100vh; flex: 0 0 200px; }
+        .admin-main { margin-left: 0; width: auto; flex: 1 1 auto; }
+    }
+
+    @media (max-width: 991px) {
+        .menu-trigger { display: flex; }
+
+        .admin-sidebar {
+            position: fixed;
+            left: -100%;
+            width: 82%;
+            height: 100vh;
+            box-shadow: 16px 0 30px rgba(15, 23, 42, 0.2);
+        }
+
+        .admin-sidebar.show { left: 0; }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            z-index: 1050;
+        }
+
+        .sidebar-overlay.show { display: block; }
+    }
+
+    .admin-topbar {
+        background: #ffffff;
+        border: 1px solid var(--admin-border);
+        border-radius: 20px;
+        padding: 0.75rem 1rem;
+        box-shadow: var(--admin-shadow);
+        margin-bottom: 16px !important;
+    }
+
+    .admin-main {
+        padding: 24px;
+        max-width: 100%;
+    }
+
+    .admin-page-header {
+        margin-bottom: 16px;
+    }
+
+    .admin-table-compact th,
+    .admin-table-compact td {
+        padding: 0.45rem 0.6rem;
+    }
+
+    .admin-card {
+        background: var(--admin-card);
+        border: 1px solid var(--admin-border);
+        border-radius: 18px;
+        box-shadow: var(--admin-shadow);
+        color: var(--admin-text);
+        animation: fadeUp 0.4s ease;
+    }
+
+    .admin-table-responsive {
+        overflow-x: auto;
+    }
+
+    .admin-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .admin-actions form {
+        margin: 0;
+    }
+
+    .admin-actions .btn {
+        white-space: nowrap;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .admin-quick-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0.6rem 0.9rem;
+        border: 1px solid transparent;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .admin-quick-btn:hover {
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(15, 23, 42, 0.16);
+        filter: brightness(1.03);
+    }
+
+    .admin-quick-btn:focus-visible {
+        outline: 2px solid rgba(55, 120, 194, 0.25);
+        outline-offset: 2px;
+        color: #ffffff;
+    }
+
+    .admin-quick-btn i {
+        font-size: 0.95rem;
+        line-height: 1;
+    }
+
+    .admin-quick-btn-add {
+        background: #bc7080;
+    }
+
+    .admin-quick-btn-edit {
+        background: #746088;
+    }
+
+    .admin-quick-btn-delete {
+        background: #3f5c83;
+    }
+
+    .admin-quick-btn-neutral {
+        background: #64748b;
+    }
+
+    .admin-table-compact {
+        width: auto;
+        min-width: 520px;
+    }
+
+    .admin-muted { color: var(--admin-muted); }
+
+    .btn-khqr {
+        background: var(--admin-primary);
+        color: #ffffff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        box-shadow: 0 12px 24px rgba(40, 85, 154, 0.3);
+    }
+
+    .btn-khqr:hover {
+        background: var(--admin-accent);
+        color: #ffffff;
+    }
+
+    .stat-card {
+        border-radius: 18px;
+        padding: 16px;
+        color: #ffffff;
+    }
+
+    .stat-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .stat-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .stat-blue { background: linear-gradient(135deg, #3778C2, #28559A); }
+    .stat-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+    .admin-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .admin-list-item:last-child { border-bottom: none; }
+
+    .admin-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--admin-accent);
+        background: linear-gradient(135deg, var(--admin-accent), var(--admin-primary));
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex: 0 0 44px;
+    }
+
+    .admin-avatar,
+    .admin-avatar img,
+    .admin-avatar span {
+        border-radius: 50% !important;
+    }
+
+    .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .admin-profile-photo,
+    .admin-profile-initials {
+        border-radius: 50% !important;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+    <style>
+        .overview-metric-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 100%;
+        }
+
+        .overview-metric-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -28px -28px auto;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .overview-metric-label {
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.92;
+        }
+
+        .overview-metric-value {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 700;
+            line-height: 1;
+            margin-top: 10px;
+        }
+
+        .overview-metric-note {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .hero-panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #28559a 52%, #4f8dd8 100%);
+            color: #ffffff;
+        }
+
+        .hero-panel::before,
+        .hero-panel::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-panel::before {
+            width: 240px;
+            height: 240px;
+            top: -90px;
+            right: -90px;
+            background: rgba(255, 255, 255, 0.11);
+        }
+
+        .hero-panel::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -30px;
+            background: rgba(34, 197, 94, 0.18);
+        }
+
+        .hero-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-kicker {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .hero-amount {
+            font-size: clamp(2.5rem, 5vw, 3.8rem);
+            font-weight: 700;
+            line-height: 1;
+            margin-top: 12px;
+        }
+
+        .hero-copy {
+            max-width: 34rem;
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.76);
+        }
+
+        .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .hero-metric {
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 18px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-metric .label,
+        .pulse-stat .label,
+        .insight-tile .label,
+        .chart-subtitle {
+            display: block;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--admin-muted);
+        }
+
+        .hero-metric .label {
+            color: rgba(255, 255, 255, 0.68);
+        }
+
+        .hero-metric .value,
+        .pulse-stat .value,
+        .insight-tile .value {
+            display: block;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .hero-insights {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .hero-insight {
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-insight-label {
+            display: block;
+            font-size: 0.76rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.62);
+        }
+
+        .hero-insight-value {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 8px;
+            color: #ffffff;
+        }
+
+        .hero-insight-note {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.72);
+            line-height: 1.45;
+        }
+
+        .trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .trend-badge-light {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+
+        .trend-up {
+            background: rgba(34, 197, 94, 0.12);
+            color: #15803d;
+        }
+
+        .trend-down {
+            background: rgba(239, 68, 68, 0.12);
+            color: #b91c1c;
+        }
+
+        .trend-neutral {
+            background: rgba(148, 163, 184, 0.16);
+            color: #475569;
+        }
+
+        .pulse-card,
+        .chart-card,
+        .insight-card {
+            min-height: 100%;
+        }
+
+        .pulse-grid,
+        .insight-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .pulse-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 18px;
+        }
+
+        .pulse-stat,
+        .insight-tile {
+            border: 1px solid var(--admin-border);
+            border-radius: 18px;
+            padding: 14px 16px;
+            background: linear-gradient(180deg, rgba(243, 246, 251, 0.92), #ffffff);
+        }
+
+        .pulse-note,
+        .insight-note {
+            margin-top: 16px;
+            color: var(--admin-muted);
+            font-size: 0.92rem;
+        }
+
+        .chart-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 320px;
+        }
+
+        .status-legend {
+            display: grid;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .status-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex: 0 0 10px;
+        }
+
+        .top-products-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .top-product-item {
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .top-product-item:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .top-product-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .top-product-name {
+            font-weight: 700;
+        }
+
+        .top-product-meta {
+            color: var(--admin-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .top-product-bar {
+            height: 9px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(55, 120, 194, 0.12);
+        }
+
+        .top-product-bar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #3778c2, #22c55e);
+        }
+
+        .soft-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .soft-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: rgba(55, 120, 194, 0.08);
+            color: var(--admin-primary);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            min-height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--admin-muted);
+            background: linear-gradient(180deg, rgba(243, 246, 251, 0.9), rgba(255, 255, 255, 0.98));
+            border: 1px dashed rgba(100, 116, 139, 0.28);
+            border-radius: 18px;
+            padding: 24px;
+        }
+
+        @media (max-width: 991px) {
+            .hero-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-insights {
+                grid-template-columns: 1fr;
+            }
+
+            .pulse-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .chart-head {
+                flex-direction: column;
+            }
+
+            .chart-wrap {
+                height: 280px;
+            }
+
+            .top-product-head {
+                flex-direction: column;
+            }
+        }
+    </style>
+ <style>
+ :root {
+     --app-radius: 2px;
+     --bs-border-radius: 2px;
+     --bs-border-radius-sm: 2px;
+     --bs-border-radius-lg: 2px;
+     --bs-border-radius-xl: 2px;
+     --bs-border-radius-xxl: 2px;
+     --bs-border-radius-2xl: 2px;
+     --bs-border-radius-pill: 2px;
+     --khqr-radius-sm: 2px;
+     --khqr-radius-md: 2px;
+     --khqr-radius-lg: 2px;
+     --khqr-radius-xl: 2px;
+ }
+
+ .btn,
+ .form-control,
+ .form-select,
+ .form-check-input,
+ .input-group-text,
+ .alert,
+ .card,
+ .dropdown-menu,
+ .modal-content,
+ .page-link,
+ .badge,
+ .table-responsive,
+ .list-group-item,
+ .search-bar,
+ .card-khqr,
+ .admin-card,
+ .admin-topbar,
+ .admin-nav a,
+ .admin-sidebar,
+ .stat-card,
+ .hero-metric,
+ .pulse-stat,
+ .insight-tile,
+ .status-item,
+ .top-product-bar,
+ .soft-pill,
+ .empty-state,
+ .icon-btn,
+ .badge-soft,
+ .summary-card,
+ .cart-card,
+ .qty-btn,
+ .qty-input,
+ .mobile-tabbar,
+ .cart-footer,
+ .mobile-action-bar,
+ .spec-item,
+ .choice-chip,
+ .qr-box,
+ .shop-nav,
+ .product-card,
+ .admin-list-item,
+ .menu-trigger,
+ .cart-toast,
+ .cart-count,
+ .tab-badge,
+ .trend-badge,
+ .hero-carousel .carousel-item img,
+ .hero-carousel .carousel-caption,
+ .top-product-bar span,
+ .status-dot,
+ .password-field .password-toggle,
+ .rounded,
+ .rounded-1,
+ .rounded-2,
+ .rounded-3,
+ .rounded-4,
+ .rounded-5,
+ .rounded-pill,
+ .rounded-top,
+ .rounded-top-1,
+ .rounded-top-2,
+ .rounded-top-3,
+ .rounded-top-4,
+ .rounded-top-5,
+ .rounded-bottom,
+ .rounded-bottom-1,
+ .rounded-bottom-2,
+ .rounded-bottom-3,
+ .rounded-bottom-4,
+ .rounded-bottom-5,
+ .rounded-start,
+ .rounded-start-1,
+ .rounded-start-2,
+ .rounded-start-3,
+ .rounded-start-4,
+ .rounded-start-5,
+ .rounded-end,
+ .rounded-end-1,
+ .rounded-end-2,
+ .rounded-end-3,
+ .rounded-end-4,
+ .rounded-end-5,
+ button[style*="border-radius"],
+ a[style*="border-radius"],
+ div[style*="border-radius"],
+ span[style*="border-radius"],
+ input[style*="border-radius"],
+ textarea[style*="border-radius"],
+ select[style*="border-radius"],
+ img[style*="border-radius"] {
+     border-radius: var(--app-radius) !important;
+ }
+
+ .password-field .form-control {
+     padding-right: 56px;
+ }
+
+ .password-field .password-toggle {
+     position: absolute;
+     right: 14px;
+     top: 50%;
+     transform: translateY(-50%);
+     width: 32px;
+     height: 32px;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     border: none;
+     background: transparent;
+     color: #64748b;
+     padding: 0;
+     z-index: 2;
+ }
+
+ .password-field .password-toggle:hover {
+     background: rgba(100, 116, 139, 0.12);
+     color: #0f172a;
+ }
+
+ .password-field .password-toggle:focus-visible {
+     outline: 2px solid rgba(55, 120, 194, 0.45);
+     outline-offset: 2px;
+ }
+
+ .password-field .password-toggle i {
+     pointer-events: none;
+ }
+ </style>
+</head>
+<body>
+ <div class="admin-shell">
+    
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <button class="menu-trigger d-lg-none" id="menuBtn">
+        <i class="bi bi-list" id="menuIcon"></i>
+    </button>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            
+            <aside class="admin-sidebar p-4" id="sidebar">
+                <div class="mb-5 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h5 fw-bold text-primary mb-0">TEAM10</div>
+                        <small class="text-muted">CLOTHING STORE</small>
+                    </div>
+                    <button class="btn btn-link text-white d-lg-none" onclick="toggleSidebar()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <nav class="admin-nav">
+                    <a href="http://127.0.0.1:8000/admin/dashboard" class="active">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                                            <a href="http://127.0.0.1:8000/admin/admins" class="">
+                            <i class="bi bi-person-gear"></i> Staff
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/users" class="">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/products" class="">
+                            <i class="bi bi-box"></i> Products
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/categories" class="">
+                            <i class="bi bi-tags"></i> Category
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/slides" class="">
+                            <i class="bi bi-images"></i> Slides
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/orders" class="">
+                            <i class="bi bi-cart"></i> Orders
+                        </a>
+                                                                <a href="http://127.0.0.1:8000/admin/payments/paid" class="">
+                            <i class="bi bi-shield-check"></i> History
+                        </a>
+                                    </nav>
+
+                <div class="mt-auto pt-5">
+                    <form method="POST" action="http://127.0.0.1:8000/admin/logout">
+                        <input type="hidden" name="_token" value="lBmtVUEeCOzdPV8jEn5esrAVlBQ4JfQqxqz1bkmd" autocomplete="off">                        <button class="btn btn-outline-danger w-100 rounded-pill py-2 border-0" style="background: rgba(225, 29, 72, 0.1);">
+                            <i class="bi bi-power me-2"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <main class="p-4 p-lg-5 admin-main">
+                <div class="admin-topbar d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="small fw-bold text-primary text-uppercase">Admin</div>
+                        <h4 class="fw-bold mb-0">TEAM10 Dashboard</h4>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                                                <div class="text-end d-none d-sm-block">
+                            <div class="fw-semibold">Codex Admin</div>
+                            <div class="admin-muted small">codex-admin@example.com</div>
+                        </div>
+                        <div class="admin-avatar" aria-label="Codex Admin">
+                                                            <span>CA</span>
+                                                    </div>
+                    </div>
+                </div>
+
+                <div class="view-content">
+                                        
+<div class="admin-page-header">
+    <div>
+        <div class="text-uppercase small admin-muted">Dashboard</div>
+        <h2 class="fw-semibold">Overview</h2>
+    </div>
+    <div class="admin-muted small">Updated 18 May 2026, 09:04 PM</div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-blue overview-metric-card">
+            <div class="overview-metric-label">Products</div>
+            <div class="overview-metric-value">3</div>
+            <div class="overview-metric-note">1 registered shoppers</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-purple overview-metric-card">
+            <div class="overview-metric-label">Orders</div>
+            <div class="overview-metric-value">1</div>
+            <div class="overview-metric-note">0 failed or expired</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-green overview-metric-card">
+            <div class="overview-metric-label">Paid</div>
+            <div class="overview-metric-value">1</div>
+            <div class="overview-metric-note">100.0% success rate</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-orange overview-metric-card">
+            <div class="overview-metric-label">Pending</div>
+            <div class="overview-metric-value">0</div>
+            <div class="overview-metric-note">Awaiting payment confirmation</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="admin-card p-4 p-lg-5 hero-panel">
+            <div class="hero-kicker">Revenue collected</div>
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+                <div>
+                    <div class="hero-amount">$0.01</div>
+                    <div class="hero-copy">
+                        Track how sales are moving across the shop with live revenue, order value, and product volume from paid orders.
+                    </div>
+                </div>
+                <span class="trend-badge trend-badge-light">New vs previous 7 days</span>
+            </div>
+
+            <div class="hero-metrics">
+                <div class="hero-metric">
+                    <span class="label">Units sold</span>
+                    <span class="value">1</span>
+                </div>
+                <div class="hero-metric">
+                    <span class="label">Average order</span>
+                    <span class="value">$0.01</span>
+                </div>
+                <div class="hero-metric">
+                    <span class="label">Average units / order</span>
+                    <span class="value">1.0</span>
+                </div>
+            </div>
+
+            <div class="hero-insights">
+                <div class="hero-insight">
+                    <span class="hero-insight-label">Best sales day</span>
+                                            <span class="hero-insight-value">18 May 2026</span>
+                        <span class="hero-insight-note">$0.01 in paid revenue</span>
+                                    </div>
+                <div class="hero-insight">
+                    <span class="hero-insight-label">Latest payment</span>
+                                            <span class="hero-insight-value">$0.01</span>
+                        <span class="hero-insight-note">#39  | 18 May, 08:27 PM </span>
+                                    </div>
+                <div class="hero-insight">
+                    <span class="hero-insight-label">Customer momentum</span>
+                    <span class="hero-insight-value">1 paying users</span>
+                    <span class="hero-insight-note">0 repeat customers returning to buy again.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="admin-card p-4 pulse-card">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                    <div class="text-uppercase small admin-muted">Sales pulse</div>
+                    <h5 class="fw-semibold mb-1">Today & this week</h5>
+                    <div class="chart-subtitle">Quick signals you can act on fast.</div>
+                </div>
+                <div class="admin-muted small text-end">Live snapshot</div>
+            </div>
+
+            <div class="pulse-grid">
+                <div class="pulse-stat">
+                    <span class="label">Today revenue</span>
+                    <span class="value">$0.01</span>
+                    <span class="trend-badge trend-neutral mt-2">New vs yesterday</span>
+                </div>
+                <div class="pulse-stat">
+                    <span class="label">Today units</span>
+                    <span class="value">1</span>
+                    <span class="trend-badge trend-neutral mt-2">New vs yesterday</span>
+                </div>
+                <div class="pulse-stat">
+                    <span class="label">This week revenue</span>
+                    <span class="value">$0.01</span>
+                    <span class="trend-badge trend-neutral mt-2">New vs last week</span>
+                </div>
+                <div class="pulse-stat">
+                    <span class="label">This week units</span>
+                    <span class="value">1</span>
+                    <span class="trend-badge trend-neutral mt-2">New vs last week</span>
+                </div>
+            </div>
+
+            <div class="soft-pills">
+                <span class="soft-pill"><i class="bi bi-receipt-cutoff"></i> 1 orders today</span>
+                <span class="soft-pill"><i class="bi bi-people"></i> 1 paying users</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="admin-card p-4 chart-card">
+            <div class="chart-head">
+                <div>
+                    <div class="text-uppercase small admin-muted">Trend chart</div>
+                    <h5 class="fw-semibold mb-1">Sales over the last 14 days</h5>
+                    <div class="chart-subtitle">Revenue and units sold are plotted together so movement is easier to spot.</div>
+                </div>
+                <div class="admin-muted small text-xl-end">Paid orders only</div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="salesTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="admin-card p-4 chart-card">
+            <div class="chart-head">
+                <div>
+                    <div class="text-uppercase small admin-muted">Order mix</div>
+                    <h5 class="fw-semibold mb-1">Payment status</h5>
+                    <div class="chart-subtitle">A quick view of paid, pending, and failed orders.</div>
+                </div>
+            </div>
+
+                            <div class="chart-wrap" style="height: 240px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            
+            <div class="status-legend">
+                                    <div class="status-item">
+                        <span class="status-meta">
+                            <span class="status-dot" style="background: #22c55e"></span>
+                            Paid
+                        </span>
+                        <strong>1</strong>
+                    </div>
+                                    <div class="status-item">
+                        <span class="status-meta">
+                            <span class="status-dot" style="background: #f97316"></span>
+                            Pending
+                        </span>
+                        <strong>0</strong>
+                    </div>
+                                    <div class="status-item">
+                        <span class="status-meta">
+                            <span class="status-dot" style="background: #ef4444"></span>
+                            Failed
+                        </span>
+                        <strong>0</strong>
+                    </div>
+                            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-6">
+        <div class="admin-card p-4 insight-card">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <div class="text-uppercase small admin-muted">Top products</div>
+                    <h5 class="fw-semibold mb-1">Best sellers</h5>
+                    <div class="chart-subtitle">Ranked by total units sold from paid orders.</div>
+                </div>
+                <span class="admin-muted small">All time</span>
+            </div>
+
+                            <div class="top-products-list">
+                                                                    <div class="top-product-item">
+                            <div class="top-product-head">
+                                <div>
+                                    <div class="top-product-name">T Shirt</div>
+                                    <div class="top-product-meta">1 sold | $0.01</div>
+                                </div>
+                                <div class="fw-semibold text-primary">1 units</div>
+                            </div>
+                            <div class="top-product-bar">
+                                <span style="width: 100%"></span>
+                            </div>
+                        </div>
+                                    </div>
+                    </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="admin-card p-4 insight-card">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <div class="text-uppercase small admin-muted">Business snapshot</div>
+                    <h5 class="fw-semibold mb-1">More signals</h5>
+                    <div class="chart-subtitle">Helpful context around your customers, team, and best-performing day.</div>
+                </div>
+                <span class="admin-muted small">Overview</span>
+            </div>
+
+            <div class="insight-grid">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="insight-tile">
+                            <span class="label">Repeat customers</span>
+                            <span class="value">0</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="insight-tile">
+                            <span class="label">Paying users</span>
+                            <span class="value">1</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="insight-tile">
+                            <span class="label">Staff accounts</span>
+                            <span class="value">4</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="insight-tile">
+                            <span class="label">Registered users</span>
+                            <span class="value">1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pulse-note">
+                                    Best sales day so far was <strong>18 May 2026</strong> with
+                    <strong>$0.01</strong> in paid revenue.
+                            </div>
+
+                            <a href="http://127.0.0.1:8000/admin/admins" class="btn btn-khqr mt-3">Manage Staff</a>
+                    </div>
+    </div>
+</div>
+
+<div class="admin-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="fw-semibold mb-1">Latest paid orders</h5>
+            <div class="chart-subtitle">Recent payments that have already been confirmed.</div>
+        </div>
+        <span class="admin-muted small">Last 10 payments</span>
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table align-middle mb-0">
+            <thead class="admin-muted small text-uppercase">
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Amount</th>
+                    <th>Paid At</th>
+                </tr>
+            </thead>
+            <tbody>
+                                    <tr>
+                        <td>39</td>
+                        <td>T Shirt</td>
+                        <td class="fw-semibold text-primary">$0.01</td>
+                        <td>18 May 2026, 08:27 PM</td>
+                    </tr>
+                            </tbody>
+        </table>
+    </div>
+
+    <div class="d-md-none">
+                    <div class="admin-list-item">
+                <div>
+                    <div class="fw-semibold">#39 - T Shirt</div>
+                    <div class="admin-muted small">18 May 2026, 08:27 PM</div>
+                </div>
+                <div class="fw-semibold text-primary">$0.01</div>
+            </div>
+            </div>
+</div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuIcon = document.getElementById('menuIcon');
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+        
+        // Change icon from list to x
+        if(sidebar.classList.contains('show')) {
+            menuIcon.classList.replace('bi-list', 'bi-x-lg');
+        } else {
+            menuIcon.classList.replace('bi-x-lg', 'bi-list');
+        }
+    }
+
+    menuBtn.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+</script>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+ <script>
+ document.addEventListener('DOMContentLoaded', function () {
+     document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+         button.addEventListener('click', function () {
+             var wrapper = button.closest('.password-field');
+             var input = wrapper ? wrapper.querySelector('input') : null;
+             var icon = button.querySelector('i');
+
+             if (!input) {
+                 return;
+             }
+
+             var willShow = input.type === 'password';
+             input.type = willShow ? 'text' : 'password';
+             button.setAttribute('aria-label', willShow ? 'Hide password' : 'Show password');
+             button.setAttribute('aria-pressed', willShow ? 'true' : 'false');
+
+             if (icon) {
+                 icon.classList.toggle('bi-eye', !willShow);
+                 icon.classList.toggle('bi-eye-slash', willShow);
+             }
+         });
+     });
+ });
+ </script>
+     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.Chart) {
+                return;
+            }
+
+            const trendData = {"labels":["05 May","06 May","07 May","08 May","09 May","10 May","11 May","12 May","13 May","14 May","15 May","16 May","17 May","18 May"],"revenue":[0,0,0,0,0,0,0,0,0,0,0,0,0,0.01],"units":[0,0,0,0,0,0,0,0,0,0,0,0,0,1],"orders":[0,0,0,0,0,0,0,0,0,0,0,0,0,1]};
+            const statusData = {"labels":["Paid","Pending","Failed"],"data":[1,0,0]};
+            const currencyCode = "USD";
+            const decimals = currencyCode === 'KHR' ? 0 : 2;
+            let moneyFormatter = null;
+
+            try {
+                moneyFormatter = new Intl.NumberFormat(undefined, {
+                    style: 'currency',
+                    currency: currencyCode,
+                    maximumFractionDigits: decimals,
+                });
+            } catch (error) {
+                moneyFormatter = null;
+            }
+
+            const formatMoney = function (value) {
+                const amount = Number(value || 0);
+
+                if (moneyFormatter) {
+                    return moneyFormatter.format(amount);
+                }
+
+                return currencyCode === 'USD'
+                    ? '$' + amount.toFixed(decimals)
+                    : amount.toFixed(decimals) + ' ' + currencyCode;
+            };
+
+            const trendCanvas = document.getElementById('salesTrendChart');
+
+            if (trendCanvas) {
+                new Chart(trendCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [
+                            {
+                                label: 'Revenue',
+                                data: trendData.revenue,
+                                yAxisID: 'y',
+                                borderColor: '#3778C2',
+                                backgroundColor: 'rgba(55, 120, 194, 0.16)',
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                            },
+                            {
+                                label: 'Units sold',
+                                data: trendData.units,
+                                yAxisID: 'y1',
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                                fill: false,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10,
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        if (context.dataset.label === 'Revenue') {
+                                            return 'Revenue: ' + formatMoney(context.parsed.y);
+                                        }
+
+                                        return 'Units sold: ' + context.parsed.y;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                }
+                            },
+                            y: {
+                                position: 'left',
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return formatMoney(value);
+                                    }
+                                }
+                            },
+                            y1: {
+                                position: 'right',
+                                beginAtZero: true,
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                ticks: {
+                                    precision: 0,
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const statusCanvas = document.getElementById('statusChart');
+
+            if (statusCanvas && Array.isArray(statusData.data) && statusData.data.some(function (value) { return Number(value) > 0; })) {
+                new Chart(statusCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusData.labels,
+                        datasets: [{
+                            data: statusData.data,
+                            backgroundColor: ['#22c55e', '#f97316', '#ef4444'],
+                            borderWidth: 0,
+                            hoverOffset: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                display: false,
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

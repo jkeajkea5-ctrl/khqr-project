@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TEAM10 Project Documentation</title>
+    <link rel="stylesheet" href="assets/documentation.css">
+</head>
+<body class="lang-en">
+    <div class="page">
+        <section class="cover">
+            <div class="cover-top">
+                <div class="cover-mark">
+                    <img src="assets/team10-logo.png" alt="TEAM10 logo">
+                    <div>
+                        <div class="eyebrow">Documentation Pack</div>
+                        <div style="margin-top:10px;font-size:14px;color:rgba(255,255,255,0.78);">Generated on May 19, 2026</div>
+                    </div>
+                </div>
+                <div style="text-align:right;font-size:14px;color:rgba(255,255,255,0.78);">
+                    Laravel 12<br>
+                    KHQR commerce workflow<br>
+                    Admin analytics dashboard
+                </div>
+            </div>
+
+            <h1>TEAM10 Clothing Store Project Documentation</h1>
+            <p>
+                This document summarizes the current project design language, colors, typography,
+                and the end-to-end process across the storefront, checkout flow, invoice confirmation,
+                and admin management area. All screenshots used in this report come from the assets stored in
+                <code>docs/assets</code>.
+            </p>
+
+            <div class="cover-grid">
+                <div class="cover-stat">
+                    Main UI font
+                    <strong>Space Grotesk</strong>
+                </div>
+                <div class="cover-stat">
+                    Auth screen font
+                    <strong>Poppins</strong>
+                </div>
+                <div class="cover-stat">
+                    Global radius rule
+                    <strong>2px base override</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>1. Project Summary</h2>
+            <p class="lead">
+                TEAM10 Clothing Store is a Laravel-based web application that combines a public shopping interface,
+                user sign in and registration, session cart management, KHQR payment processing, invoice generation,
+                and a role-based admin workspace for managing products, categories, slides, orders, and staff.
+            </p>
+
+            <div class="grid-2">
+                <div class="summary-card">
+                    <h3>Platform and package stack</h3>
+                    <div class="chip-row">
+                        <span class="chip">Laravel 12</span>
+                        <span class="chip">PHP 8.2</span>
+                        <span class="chip">Bootstrap 5.3</span>
+                        <span class="chip">Vite 7</span>
+                        <span class="chip">KHQR Gateway</span>
+                        <span class="chip">Simple QRCode</span>
+                        <span class="chip">Bootstrap Icons</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <h3>Main feature groups</h3>
+                    <ul>
+                        <li>Storefront browsing with category filters and product cards.</li>
+                        <li>User registration and sign-in with phone or email support.</li>
+                        <li>Product detail pages with size and color selection.</li>
+                        <li>Cart, checkout, KHQR payment verification, and invoice output.</li>
+                        <li>Admin dashboard analytics with revenue, units sold, and payment status charts.</li>
+                        <li>Role-based staff access for admin, stock controller, and employee accounts.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. Color System and Typography</h2>
+            <p class="lead">
+                The interface is built around a clean blue-led palette with white content surfaces, slate helper text,
+                and a few stronger accents for actions and status. Typography is split between the primary application
+                shell and the authentication screens.
+            </p>
+
+            <div class="swatch-grid">
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#28559A;"></div>
+                    <div class="swatch-body">
+                        <strong>Primary Blue</strong>
+                        <code>#28559A</code>
+                        <p>Main buttons, dashboard emphasis, action CTAs, and structural highlights.</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#1F3E77;"></div>
+                    <div class="swatch-body">
+                        <strong>Primary Dark</strong>
+                        <code>#1F3E77</code>
+                        <p>Hover depth, darker emphasis, and checkout/admin contrast states.</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#3778C2;"></div>
+                    <div class="swatch-body">
+                        <strong>Accent Blue</strong>
+                        <code>#3778C2</code>
+                        <p>Chips, charts, focus states, and secondary emphasis blocks.</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#150734;"></div>
+                    <div class="swatch-body">
+                        <strong>Brand Ink</strong>
+                        <code>#150734</code>
+                        <p>Main dark text tone across storefront content and brand identity areas.</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#F3F6FB;"></div>
+                    <div class="swatch-body">
+                        <strong>Base Background</strong>
+                        <code>#F3F6FB</code>
+                        <p>Shared page background for store pages, admin shell, and auth environments.</p>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-top" style="background:#64748B;"></div>
+                    <div class="swatch-body">
+                        <strong>Muted Slate</strong>
+                        <code>#64748B</code>
+                        <p>Subtitles, helper text, meta labels, and lower-emphasis information.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="type-grid" style="margin-top:18px;">
+                <div class="type-card">
+                    <h3>Main application font</h3>
+                    <div class="specimen-grotesk">Space Grotesk</div>
+                    <p class="note">
+                        Used in the storefront and admin panel to give the product and dashboard experience a sharper,
+                        more modern visual tone.
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>Authentication font</h3>
+                    <div class="specimen-poppins">Poppins</div>
+                    <p class="note">
+                        Used in admin and user authentication screens for a softer, cleaner form presentation.
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>Corner system</h3>
+                    <div class="specimen-grotesk" style="font-size:24px;">2px global radius</div>
+                    <p class="note">
+                        The shared layout forces a tight 2px radius across buttons, cards, inputs, and Bootstrap rounded utilities.
+                    </p>
+                </div>
+                <div class="type-card">
+                    <h3>Icon system</h3>
+                    <div class="specimen-grotesk" style="font-size:24px;">Bootstrap Icons</div>
+                    <p class="note">
+                        Icons are used throughout navigation, actions, cart states, analytics, and authentication controls.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section page-break">
+            <h2>3. Project Process</h2>
+            <p class="lead">
+                The application has two major tracks: the customer purchase journey and the admin management workflow.
+                The diagram below gives a high-level map of the full system process.
+            </p>
+
+            <div class="figure">
+                <img src="assets/process-flow.svg" alt="TEAM10 process flow">
+                <div class="caption">Flow map covering shopping, KHQR payment confirmation, and admin-side operations.</div>
+            </div>
+
+            <div class="process-list">
+                <div class="process-card">
+                    <h3>Customer journey</h3>
+                    <ol>
+                        <li>User opens the home page and browses products by category or search.</li>
+                        <li>User registers or signs in when account-based checkout is needed.</li>
+                        <li>User reviews product detail, selects size and color, then adds the item to cart.</li>
+                        <li>User reviews the cart and proceeds to the KHQR checkout screen.</li>
+                        <li>The system generates a QR code, stores a pending order, and waits for Bakong verification.</li>
+                        <li>After confirmation, the order becomes paid and the invoice page is displayed.</li>
+                    </ol>
+                </div>
+                <div class="process-card">
+                    <h3>Admin workflow</h3>
+                    <ol>
+                        <li>Admin signs in through the dedicated back-office login page.</li>
+                        <li>The dashboard shows revenue, trends, paid orders, top products, and order mix.</li>
+                        <li>Catalog pages manage products, categories, colors, sizes, and slideshow assets.</li>
+                        <li>Operational pages track order history, paid payments, and staff/user access.</li>
+                        <li>Role checks decide which staff can create, edit, or delete each resource.</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>4. Customer-Side Screens</h2>
+            <p class="lead">
+                The following images document the customer-facing flow using the updated screenshots from <code>docs/assets</code>.
+                The refreshed T-shirt image appears on the storefront catalog and admin product listing.
+            </p>
+
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <img src="assets/main%20page.png" alt="Storefront main page">
+                    <div class="gallery-body">
+                        <h3>Main page</h3>
+                        <p>Shows category filters, product cards, and the updated T-shirt thumbnail in the storefront listing.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/user%20sign%20up.png" alt="User sign up screen">
+                    <div class="gallery-body">
+                        <h3>User sign up</h3>
+                        <p>Registration form with phone number, optional email, and password confirmation workflow.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/user%20sign%20in.png" alt="User sign in screen">
+                    <div class="gallery-body">
+                        <h3>User sign in</h3>
+                        <p>Login screen that accepts either a phone number or an email address.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/detail.png" alt="Product detail screen">
+                    <div class="gallery-body">
+                        <h3>Product detail</h3>
+                        <p>Displays size and color selectors, product image, and the purchase call-to-action layout.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/check%20out.png" alt="Cart page">
+                    <div class="gallery-body">
+                        <h3>Cart review</h3>
+                        <p>Users can review selected items, adjust quantity, remove items, or continue to payment.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/paying.png" alt="KHQR payment screen">
+                    <div class="gallery-body">
+                        <h3>KHQR payment</h3>
+                        <p>Generates the QR code, reference number, amount summary, and the active payment verification step.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/paid.png" alt="Invoice page">
+                    <div class="gallery-body">
+                        <h3>Paid invoice</h3>
+                        <p>Shows the completed transaction, customer details, order lines, and payment status after success.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>5. Admin-Side Screens</h2>
+            <p class="lead">
+                These images capture the management layer of the project, including analytics, catalog tools, and order operations.
+            </p>
+
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <img src="assets/admin-login.png" alt="Admin login page">
+                    <div class="gallery-body">
+                        <h3>Admin login</h3>
+                        <p>Dedicated back-office sign-in with a split-panel blue presentation and focused form layout.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/admin-dashboard.png" alt="Admin dashboard">
+                    <div class="gallery-body">
+                        <h3>Admin dashboard</h3>
+                        <p>Revenue metrics, trend charts, top products, payment status, and operational signals for staff.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/product.png" alt="Admin product catalog">
+                    <div class="gallery-body">
+                        <h3>Product catalog</h3>
+                        <p>Admin product management table showing the refreshed T-shirt image, sizes, colors, and action buttons.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/category.png" alt="Admin category management">
+                    <div class="gallery-body">
+                        <h3>Category management</h3>
+                        <p>Category list with product counts and add, edit, and delete operations.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/slide.png" alt="Admin slides management">
+                    <div class="gallery-body">
+                        <h3>Slides management</h3>
+                        <p>Homepage slideshow administration with preview thumbnails, position, active status, and controls.</p>
+                    </div>
+                </div>
+                <div class="gallery-card">
+                    <img src="assets/order.png" alt="Admin orders page">
+                    <div class="gallery-body">
+                        <h3>Orders page</h3>
+                        <p>Operational order history with product name, amount, status, MD5, and paid/created timestamps.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>6. Key Source Files</h2>
+            <p class="lead">
+                These files drive the design system, data flow, and process documented in this report.
+            </p>
+
+            <div class="file-list">
+                <div class="file-item">
+                    <code>resources/views/layouts/app.blade.php</code>
+                    Shared application shell and the global 2px radius override.
+                </div>
+                <div class="file-item">
+                    <code>resources/views/products/_styles.blade.php</code>
+                    Storefront palette, component styling, buttons, cards, and responsive shopping UI rules.
+                </div>
+                <div class="file-item">
+                    <code>resources/views/admin/layouts/app.blade.php</code>
+                    Admin layout, navigation, typography, card system, and action button styling.
+                </div>
+                <div class="file-item">
+                    <code>resources/views/auth/login.blade.php</code>
+                    Admin login page design and session-expired handling UI.
+                </div>
+                <div class="file-item">
+                    <code>routes/web.php</code>
+                    Public routes, user auth, cart, checkout, and admin route definitions.
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/ProductController.php</code>
+                    Product listing, search, category filter, and total-bought decoration logic.
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/CartController.php</code>
+                    Session-based cart add, update, remove, and clear behaviors.
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/PaymentController.php</code>
+                    KHQR generation, pending order creation, verification polling, invoice, and Telegram notification flow.
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/UserAuthController.php</code>
+                    User registration, login, phone/email normalization, and logout flow.
+                </div>
+                <div class="file-item">
+                    <code>app/Http/Controllers/Admin/OrderAdminController.php</code>
+                    Dashboard analytics, revenue aggregation, charts, and operational reporting logic.
+                </div>
+            </div>
+
+            <div class="footer">
+                English version - TEAM10 Clothing Store documentation rebuilt with the updated assets from <code>docs/assets</code>.
+            </div>
+        </section>
+    </div>
+</body>
+</html>

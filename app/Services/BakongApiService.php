@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use KHQR\BakongKHQR;
 use RuntimeException;
+use Throwable;
 
 class BakongApiService
 {
@@ -15,9 +14,11 @@ class BakongApiService
             throw new RuntimeException('Bakong MD5 cannot be blank.');
         }
 
-        return $this->post('/v1/check_transaction_by_md5', [
-            'md5' => $md5,
-        ], true);
+        try {
+            return (new BakongKHQR($this->token()))->checkTransactionByMD5($md5, $this->isSitEnvironment());
+        } catch (Throwable $e) {
+            throw new RuntimeException($this->normalizeMessage($e), (int) $e->getCode(), previous: $e);
+        }
     }
 
     public function checkBakongAccount(string $accountId): array
@@ -26,84 +27,50 @@ class BakongApiService
             throw new RuntimeException('Bakong account ID cannot be blank.');
         }
 
-        return $this->post('/v1/check_bakong_account', [
-            'accountId' => $accountId,
-        ], false);
-    }
-
-    private function post(string $path, array $payload, bool $withToken): array
-    {
-        $request = Http::acceptJson()
-            ->asJson()
-            ->timeout(20)
-            ->connectTimeout(10)
-            ->retry(3, 750);
-
-        if ($withToken) {
-            $token = (string) config('services.bakong.token');
-            if (trim($token) === '') {
-                throw new RuntimeException('Bakong token is not configured.');
-            }
-
-            $request = $request->withToken($token);
-        }
-
         try {
-            $response = $request->post($this->baseUrl().$path, $payload);
-        } catch (ConnectionException $e) {
-            throw new RuntimeException(
-                'Unable to reach the Bakong API. Check outbound access to '.$this->baseUrl().'.',
-                previous: $e
-            );
-        }
+            $response = BakongKHQR::checkBakongAccount($accountId, $this->isSitEnvironment());
+            $data = is_array($response->data) ? $response->data : (array) $response->data;
 
-        return $this->decodeResponse($response);
+            return [
+                'responseCode' => (int) (($response->status['code'] ?? 1) === 0 ? 0 : 1),
+                'responseMessage' => $response->status['message'] ?? null,
+            ] + $data;
+        } catch (Throwable $e) {
+            throw new RuntimeException($this->normalizeMessage($e), (int) $e->getCode(), previous: $e);
+        }
     }
 
-    private function baseUrl(): string
+    private function token(): string
     {
-        $baseUrl = (string) config('services.bakong.api_url', 'https://api-bakong.nbc.gov.kh');
-        $baseUrl = trim($baseUrl);
+        $token = trim((string) config('services.bakong.token'));
 
-        if ($baseUrl === '') {
-            throw new RuntimeException('Bakong API URL is not configured.');
+        if ($token === '') {
+            throw new RuntimeException('Bakong token is not configured.');
         }
 
-        if (!preg_match('#^https?://#i', $baseUrl)) {
-            $baseUrl = 'https://'.$baseUrl;
-        }
-
-        return rtrim($baseUrl, '/');
+        return $token;
     }
 
-    private function decodeResponse(Response $response): array
+    private function isSitEnvironment(): bool
     {
-        $data = $response->json();
+        $baseUrl = trim((string) config('services.bakong.api_url', 'https://api-bakong.nbc.gov.kh'));
 
-        if (!is_array($data)) {
-            if ($response->failed()) {
-                $summary = trim(strip_tags($response->body()));
-                $summary = preg_replace('/\s+/', ' ', $summary ?? '');
-                $summary = $summary !== '' ? mb_substr($summary, 0, 160) : 'Bakong API request failed.';
+        return str_contains(strtolower($baseUrl), 'sit-api-bakong');
+    }
 
-                throw new RuntimeException(
-                    'Bakong API returned HTTP '.$response->status().': '.$summary,
-                    $response->status()
-                );
-            }
+    private function normalizeMessage(Throwable $e): string
+    {
+        $message = trim(strip_tags((string) $e->getMessage()));
+        $message = preg_replace('/\s+/', ' ', $message ?? '');
 
-            throw new RuntimeException('Bakong API returned an invalid JSON response.');
+        if ($message === '') {
+            return 'Bakong API request failed.';
         }
 
-        if ($response->successful()) {
-            return $data;
+        if (preg_match('/^(\d{3})\s+(.+)$/', $message, $matches) === 1) {
+            return 'Bakong API returned HTTP '.$matches[1].': '.mb_substr(trim($matches[2]), 0, 160);
         }
 
-        $message = $data['responseMessage']
-            ?? $data['message']
-            ?? $response->body()
-            ?? 'Bakong API request failed.';
-
-        throw new RuntimeException((string) $message, $response->status());
+        return mb_substr($message, 0, 200);
     }
 }

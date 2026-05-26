@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use KHQR\BakongKHQR;
 use RuntimeException;
 use Throwable;
@@ -15,6 +16,10 @@ class BakongApiService
         }
 
         try {
+            if ($this->verifyUrl() !== '') {
+                return $this->checkTransactionViaProxy($md5);
+            }
+
             return (new BakongKHQR($this->token()))->checkTransactionByMD5($md5, $this->isSitEnvironment());
         } catch (Throwable $e) {
             throw new RuntimeException($this->normalizeMessage($e), (int) $e->getCode(), previous: $e);
@@ -51,11 +56,55 @@ class BakongApiService
         return $token;
     }
 
+    private function verifyUrl(): string
+    {
+        return trim((string) config('services.bakong.verify_url', ''));
+    }
+
+    private function verifySecret(): string
+    {
+        return trim((string) config('services.bakong.verify_secret', ''));
+    }
+
     private function isSitEnvironment(): bool
     {
         $baseUrl = trim((string) config('services.bakong.api_url', 'https://api-bakong.nbc.gov.kh'));
 
         return str_contains(strtolower($baseUrl), 'sit-api-bakong');
+    }
+
+    private function checkTransactionViaProxy(string $md5): array
+    {
+        $request = Http::acceptJson()
+            ->asJson()
+            ->timeout(20)
+            ->connectTimeout(10)
+            ->retry(2, 500);
+
+        if ($this->verifySecret() !== '') {
+            $request = $request->withHeader('X-Bakong-Verify-Secret', $this->verifySecret());
+        }
+
+        $response = $request->post($this->verifyUrl(), [
+            'md5' => $md5,
+        ]);
+
+        $data = $response->json();
+
+        if (!is_array($data)) {
+            throw new RuntimeException('Bakong verify proxy returned an invalid JSON response.');
+        }
+
+        if ($response->successful()) {
+            return $data;
+        }
+
+        $message = $data['error']
+            ?? $data['responseMessage']
+            ?? $response->body()
+            ?? 'Bakong verify proxy request failed.';
+
+        throw new RuntimeException((string) $message, $response->status());
     }
 
     private function normalizeMessage(Throwable $e): string

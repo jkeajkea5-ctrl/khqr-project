@@ -8,6 +8,7 @@
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "DB_CONNECTION": "mongodb",
+    "BAKONG_VERIFY_URL": "https://phplaravel-1630041-6446953.cloudwaysapps.com/bakong-verify",
     "LOG_CHANNEL": "stderr",
     "SESSION_DRIVER": "cookie",
     "CACHE_STORE": "array",

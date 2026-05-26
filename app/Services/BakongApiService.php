@@ -58,7 +58,17 @@ class BakongApiService
 
     private function verifyUrl(): string
     {
-        return trim((string) config('services.bakong.verify_url', ''));
+        $url = trim((string) config('services.bakong.verify_url', ''));
+
+        if ($url === '') {
+            return $url;
+        }
+
+        return str_replace(
+            'phplaravel-1630041-6446889.cloudwaysapps.com',
+            'phplaravel-1630041-6446953.cloudwaysapps.com',
+            $url
+        );
     }
 
     private function verifySecret(): string

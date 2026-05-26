@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -102,5 +103,18 @@ class ExampleTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bought: 3');
         $response->assertSee('Bought: 1');
+    }
+
+    public function test_order_dates_are_rendered_in_app_timezone(): void
+    {
+        config()->set('app.timezone', 'Asia/Phnom_Penh');
+
+        $order = new Order();
+        $order->setRawAttributes([
+            'created_at' => Carbon::create(2026, 5, 26, 3, 40, 0, 'UTC'),
+        ], true);
+
+        $this->assertSame('26 May 2026, 10:40 AM', $order->created_at->format('d M Y, h:i A'));
+        $this->assertSame('Asia/Phnom_Penh', $order->created_at->timezoneName);
     }
 }

@@ -7,6 +7,7 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
+    "APP_TIMEZONE": "Asia/Phnom_Penh",
     "DB_CONNECTION": "mongodb",
     "LOG_CHANNEL": "stderr",
     "SESSION_DRIVER": "cookie",

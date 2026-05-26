@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
@@ -24,16 +25,23 @@ class ExampleTest extends TestCase
 
     public function test_home_page_shows_total_bought_for_each_product(): void
     {
+        $category = Category::create([
+            'name' => 'Phones',
+            'slug' => 'phones',
+        ]);
+
         $firstProduct = Product::create([
             'name' => 'Phone One',
             'description' => 'First product',
             'price' => 100,
+            'category_id' => $category->id,
         ]);
 
         $secondProduct = Product::create([
             'name' => 'Phone Two',
             'description' => 'Second product',
             'price' => 200,
+            'category_id' => $category->id,
         ]);
 
         Order::create([
@@ -103,6 +111,7 @@ class ExampleTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bought: 3');
         $response->assertSee('Bought: 1');
+        $response->assertDontSee('Category:');
     }
 
     public function test_order_dates_are_rendered_in_app_timezone(): void

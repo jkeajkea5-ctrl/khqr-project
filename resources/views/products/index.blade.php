@@ -76,10 +76,7 @@
                         <h5 class="fw-semibold">{{ $product->name }}</h5>
                         <p class="text-muted small flex-grow-1 d-none d-md-block">{{ \Illuminate\Support\Str::limit($product->description, 90) }}</p>
 
-                        <div class="d-flex flex-wrap gap-2">
-                            @if($product->category)
-                                <span class="badge-soft">Category: {{ $product->category->name }}</span>
-                            @endif
+                        <div class="d-flex flex-wrap gap-2 product-meta">
                             <span class="badge-soft">Bought: {{ number_format((int) ($product->total_bought ?? 0)) }}</span>
                         </div>
 
@@ -94,7 +91,7 @@
 
                         <div class="d-flex justify-content-between align-items-center mt-3 product-actions">
                             <span class="price">${{ number_format($product->price, 2) }}</span>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 product-actions-cta">
                                 <a href="{{ route('product.show', $product->id) }}" class="btn btn-khqr btn-sm product-cta">
                                     View details
                                     <i class="bi bi-arrow-up-right"></i>

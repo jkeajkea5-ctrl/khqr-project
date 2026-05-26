@@ -4,8 +4,6 @@ return [
     'bakong' => [
         'token' => env('BAKONG_TOKEN'),
         'api_url' => env('BAKONG_API_URL', 'https://api-bakong.nbc.gov.kh'),
-        'verify_url' => env('BAKONG_VERIFY_URL'),
-        'verify_secret' => env('BAKONG_VERIFY_SECRET'),
         'account_id' => env('BAKONG_ACCOUNT_ID'),
         'merchant_name' => env('BAKONG_MERCHANT_NAME'),
         'merchant_city' => env('BAKONG_MERCHANT_CITY', 'Phnom Penh'),

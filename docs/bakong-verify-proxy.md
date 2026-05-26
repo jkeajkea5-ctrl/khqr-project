@@ -1,5 +1,9 @@
 # Bakong Verify Proxy
 
+This is an optional fallback only.
+
+The current project is configured to call the default Bakong API directly from Vercel. Use this proxy only if Bakong asks you to move verification to a separate approved server.
+
 Use this when the Vercel deployment can generate KHQR successfully but Bakong blocks transaction-status checks from Vercel with CloudFront `403`.
 
 ## What this does
@@ -12,6 +16,7 @@ Use this when the Vercel deployment can generate KHQR successfully but Bakong bl
 
 - Proxy endpoint: `deploy/bakong-verify-proxy/index.php`
 - Config template: `deploy/bakong-verify-proxy/config.example.php`
+
 
 ## Deploy the proxy
 
@@ -42,6 +47,10 @@ return [
     'BAKONG_VERIFY_SECRET' => 'your_shared_secret',
 ];
 ```
+
+If you want to test against Bakong SIT instead, switch `BAKONG_API_URL` to
+`https://sit-api-bakong.nbc.gov.kh` and use a token issued by the SIT environment.
+A production token will not work on the SIT host.
 
 ## Environment variables on Vercel
 

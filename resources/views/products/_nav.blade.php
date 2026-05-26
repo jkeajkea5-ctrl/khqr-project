@@ -48,13 +48,6 @@
         <i class="bi bi-house"></i>
         <span>Home</span>
     </a>
-    <a href="{{ route('cart.index') }}" class="tab-item {{ request()->routeIs('cart.*') ? 'active' : '' }}">
-        <i class="bi bi-bag"></i>
-        <span>Cart</span>
-        @if($count > 0)
-            <span class="tab-badge">{{ $count }}</span>
-        @endif
-    </a>
     <a href="{{ route('user.orders') }}" class="tab-item {{ request()->routeIs('user.orders') ? 'active' : '' }}">
         <i class="bi bi-receipt"></i>
         <span>Orders</span>

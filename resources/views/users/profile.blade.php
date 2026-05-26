@@ -196,6 +196,22 @@
     display: inline-flex;
 }
 
+.profile-actions-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.profile-actions-footer .btn,
+.profile-actions-footer form {
+    flex: 1 1 220px;
+}
+
+.profile-actions-footer form .btn {
+    width: 100%;
+}
+
 @media (max-width: 992px) {
     .profile-stats,
     .profile-grid,
@@ -365,6 +381,20 @@
                                 <span>Track recent checkouts</span>
                             </span>
                         </a>
+                    </div>
+
+                    <div class="profile-actions-footer">
+                        <a href="{{ route('cart.index') }}" class="btn btn-ghost">
+                            <i class="bi bi-bag"></i>
+                            Open cart
+                        </a>
+                        <form method="POST" action="{{ route('user.logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Log out
+                            </button>
+                        </form>
                     </div>
                 </div>
 

@@ -2,6 +2,22 @@
 
 declare(strict_types=1);
 
+$config = [];
+$configPath = __DIR__.'/config.php';
+if (is_file($configPath)) {
+    $loaded = require $configPath;
+    if (is_array($loaded)) {
+        $config = $loaded;
+    }
+}
+
+function proxy_config(array $config, string $key, string $default = ''): string
+{
+    $value = $config[$key] ?? getenv($key) ?? $default;
+
+    return trim((string) $value);
+}
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -23,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$sharedSecret = trim((string) getenv('BAKONG_VERIFY_SECRET'));
+$sharedSecret = proxy_config($config, 'BAKONG_VERIFY_SECRET');
 $providedSecret = trim((string) ($_SERVER['HTTP_X_BAKONG_VERIFY_SECRET'] ?? ''));
 
 if ($sharedSecret !== '' && !hash_equals($sharedSecret, $providedSecret)) {
@@ -53,8 +69,8 @@ if ($md5 === '') {
     exit;
 }
 
-$token = trim((string) getenv('BAKONG_TOKEN'));
-$apiUrl = trim((string) getenv('BAKONG_API_URL'));
+$token = proxy_config($config, 'BAKONG_TOKEN');
+$apiUrl = proxy_config($config, 'BAKONG_API_URL', 'https://api-bakong.nbc.gov.kh');
 
 if ($token === '') {
     http_response_code(500);
@@ -63,10 +79,6 @@ if ($token === '') {
         'responseCode' => 1,
     ]);
     exit;
-}
-
-if ($apiUrl === '') {
-    $apiUrl = 'https://api-bakong.nbc.gov.kh';
 }
 
 $url = rtrim($apiUrl, '/').'/v1/check_transaction_by_md5';

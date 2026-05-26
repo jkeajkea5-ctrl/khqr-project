@@ -11,39 +11,44 @@ Use this when the Vercel deployment can generate KHQR successfully but Bakong bl
 ## Files
 
 - Proxy endpoint: `deploy/bakong-verify-proxy/index.php`
+- Config template: `deploy/bakong-verify-proxy/config.example.php`
 
 ## Deploy the proxy
 
-Deploy `deploy/bakong-verify-proxy/index.php` to any PHP server that can reach Bakong reliably, such as:
+Deploy the `deploy/bakong-verify-proxy/` folder to any PHP server that can reach Bakong reliably, such as:
 
 - Cloudways
 - shared hosting with PHP 8+
 - VPS with Apache / Nginx + PHP
 
+Upload it under your public web root as `bakong-verify/`, then create `config.php` in that folder from `config.example.php`.
+
 Example URL after deploy:
 
 ```text
-https://verify.your-domain.com/bakong-verify.php
+https://verify.your-domain.com/bakong-verify/
 ```
 
-## Environment variables on the proxy host
+## Config on the proxy host
 
-Set these on the proxy host:
+Create `bakong-verify/config.php` with:
 
 ```env
-BAKONG_TOKEN=your_real_bakong_token
-BAKONG_API_URL=https://api-bakong.nbc.gov.kh
-BAKONG_VERIFY_SECRET=your_shared_secret
-```
+<?php
 
-`BAKONG_VERIFY_SECRET` is optional but recommended.
+return [
+    'BAKONG_TOKEN' => 'your_real_bakong_token',
+    'BAKONG_API_URL' => 'https://api-bakong.nbc.gov.kh',
+    'BAKONG_VERIFY_SECRET' => 'your_shared_secret',
+];
+```
 
 ## Environment variables on Vercel
 
 Add these to the Vercel project:
 
 ```env
-BAKONG_VERIFY_URL=https://verify.your-domain.com/bakong-verify.php
+BAKONG_VERIFY_URL=https://verify.your-domain.com/bakong-verify/
 BAKONG_VERIFY_SECRET=the_same_shared_secret
 ```
 

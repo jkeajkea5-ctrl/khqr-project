@@ -304,13 +304,6 @@
                             <div class="profile-panel-title">My profile</div>
                             <div class="profile-panel-note">Keep your shopping details current for smoother checkout and invoices.</div>
                         </div>
-                        <form method="POST" action="{{ route('user.logout') }}" class="logout-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-ghost btn-sm">
-                                <i class="bi bi-box-arrow-right"></i>
-                                Sign out
-                            </button>
-                        </form>
                     </div>
 
                     <form method="POST" action="{{ route('user.profile.update') }}">

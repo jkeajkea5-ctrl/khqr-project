@@ -25,6 +25,9 @@
             </a>
         </div>
         <div class="d-flex gap-2 align-items-center">
+            <a href="{{ route('home') }}" class="icon-btn d-none d-md-inline-flex" aria-label="Home">
+                <i class="bi bi-house"></i>
+            </a>
             <a href="{{ route('cart.index') }}" class="icon-btn">
                 <i class="bi bi-bag"></i>
                 @if($count > 0)

@@ -169,6 +169,19 @@ const pollVerification = async () => {
             return;
         }
 
+        if (data.verificationUnavailable) {
+            verificationEnabled = false;
+            clearInterval(timer);
+            setStatus('Bakong verification is temporarily unavailable on this deployment.');
+            setVerificationError(data.error || 'Unable to verify payment right now.');
+
+            if (retryButton) {
+                retryButton.textContent = 'Try again later';
+            }
+
+            return;
+        }
+
         setStatus('QR generated. Waiting for Bakong payment confirmation...');
     } catch (error) {
         const message = error.message || 'Unable to verify payment right now.';

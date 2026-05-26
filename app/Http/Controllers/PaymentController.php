@@ -350,15 +350,15 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             $message = $e->getMessage();
             $normalizedMessage = strtolower($message);
-            $status = str_contains($normalizedMessage, 'unable to reach the bakong api')
+            $verificationUnavailable = str_contains($normalizedMessage, 'unable to reach the bakong api')
                 || str_contains($normalizedMessage, 'not configured')
-                ? 503
-                : 500;
+                || str_contains($normalizedMessage, 'bakong api returned http 403');
 
             return response()->json([
                 'error' => $message,
                 'responseCode' => 1,
-            ], $status);
+                'verificationUnavailable' => $verificationUnavailable,
+            ]);
         }
     }
 

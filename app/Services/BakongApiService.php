@@ -64,11 +64,17 @@ class BakongApiService
             return $url;
         }
 
-        return str_replace(
+        $url = str_replace(
             'phplaravel-1630041-6446889.cloudwaysapps.com',
             'phplaravel-1630041-6446953.cloudwaysapps.com',
             $url
         );
+
+        if (preg_match('#/bakong-verify$#', $url) === 1) {
+            $url .= '/';
+        }
+
+        return $url;
     }
 
     private function verifySecret(): string

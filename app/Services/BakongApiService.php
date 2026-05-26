@@ -81,6 +81,17 @@ class BakongApiService
         $data = $response->json();
 
         if (!is_array($data)) {
+            if ($response->failed()) {
+                $summary = trim(strip_tags($response->body()));
+                $summary = preg_replace('/\s+/', ' ', $summary ?? '');
+                $summary = $summary !== '' ? mb_substr($summary, 0, 160) : 'Bakong API request failed.';
+
+                throw new RuntimeException(
+                    'Bakong API returned HTTP '.$response->status().': '.$summary,
+                    $response->status()
+                );
+            }
+
             throw new RuntimeException('Bakong API returned an invalid JSON response.');
         }
 

@@ -56,9 +56,7 @@ Route::match(['get','post'], '/cart/clear', [CartController::class, 'clear'])->n
 */
 Route::middleware('user')->group(function () {
     Route::match(['get','post'], '/checkout/cart', [PaymentController::class, 'checkoutCart'])->name('checkout.cart');
-    Route::post('/checkout/{id}', [PaymentController::class, 'checkout'])
-        ->whereNumber('id')
-        ->name('checkout');
+    Route::post('/checkout/{id}', [PaymentController::class, 'checkout'])->name('checkout');
     Route::post('/verify', [PaymentController::class, 'verifyTransaction'])->name('verify.transaction');
     Route::get('/invoice/{order}', [PaymentController::class, 'invoice'])->name('invoice');
 });

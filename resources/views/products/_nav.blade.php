@@ -1,10 +1,12 @@
 @php
     $cart = session('cart', []);
     $count = collect($cart)->sum(fn ($item) => $item['qty']);
+    $showMobileTabbar = $showMobileTabbar ?? true;
     $shouldUseBrandLogo = $useBrandLogo ?? (
         !($showBack ?? false)
         && !request()->routeIs('user.*')
     );
+    $accountRoute = auth()->check() ? route('user.profile') : route('user.login');
 @endphp
 <nav class="shop-nav">
     <div class="container d-flex justify-content-between align-items-center py-3">
@@ -31,10 +33,7 @@
             </a>
             @auth
                 <a href="{{ route('user.orders') }}" class="icon-btn"><i class="bi bi-receipt"></i></a>
-                <form method="POST" action="{{ route('user.logout') }}">
-                    @csrf
-                    <button class="icon-btn" type="submit"><i class="bi bi-box-arrow-right"></i></button>
-                </form>
+                <a href="{{ route('user.profile') }}" class="icon-btn"><i class="bi bi-person"></i></a>
             @else
                 <a href="{{ route('user.login') }}" class="icon-btn"><i class="bi bi-person"></i></a>
                 <a href="{{ route('user.register') }}" class="icon-btn"><i class="bi bi-person-plus"></i></a>
@@ -43,6 +42,7 @@
     </div>
 </nav>
 
+@if($showMobileTabbar)
 <nav class="mobile-tabbar d-md-none">
     <a href="{{ route('home') }}" class="tab-item {{ request()->routeIs('home') ? 'active' : '' }}">
         <i class="bi bi-house"></i>
@@ -59,8 +59,9 @@
         <i class="bi bi-receipt"></i>
         <span>Orders</span>
     </a>
-    <a href="{{ route('user.login') }}" class="tab-item {{ request()->routeIs('user.login') ? 'active' : '' }}">
+    <a href="{{ $accountRoute }}" class="tab-item {{ request()->routeIs('user.profile', 'user.login', 'user.register') ? 'active' : '' }}">
         <i class="bi bi-person"></i>
         <span>Account</span>
     </a>
 </nav>
+@endif

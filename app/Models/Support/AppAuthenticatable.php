@@ -2,6 +2,7 @@
 
 namespace App\Models\Support;
 
+use DateTimeInterface;
 use Illuminate\Foundation\Auth\User as EloquentAuthenticatable;
 
 $useMongoDocumentModel = extension_loaded('mongodb')
@@ -15,9 +16,32 @@ if ($useMongoDocumentModel) {
     abstract class AppAuthenticatable extends \MongoDB\Laravel\Auth\User
     {
         protected $connection = 'mongodb';
+
+        protected function asDateTime($value): \Illuminate\Support\Carbon
+        {
+            $date = parent::asDateTime($value);
+            $timezone = (string) config('app.timezone', 'UTC');
+
+            if ($value instanceof DateTimeInterface && $timezone !== '') {
+                return $date->setTimezone($timezone);
+            }
+
+            return $date;
+        }
     }
 } else {
     abstract class AppAuthenticatable extends EloquentAuthenticatable
     {
+        protected function asDateTime($value): \Illuminate\Support\Carbon
+        {
+            $date = parent::asDateTime($value);
+            $timezone = (string) config('app.timezone', 'UTC');
+
+            if ($value instanceof DateTimeInterface && $timezone !== '') {
+                return $date->setTimezone($timezone);
+            }
+
+            return $date;
+        }
     }
 }

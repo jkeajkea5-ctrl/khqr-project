@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-@include('products._nav')
+@include('products._nav', ['showMobileTabbar' => false])
 <div class="shop-page">
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-3">

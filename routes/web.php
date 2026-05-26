@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserOrderController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminAccountController;
 use App\Http\Controllers\Admin\CategoryAdminController;
@@ -37,6 +38,10 @@ Route::get('/user/register', [UserAuthController::class, 'showRegister'])->name(
 Route::post('/user/register', [UserAuthController::class, 'register'])->name('user.register.submit');
 Route::post('/user/logout', [UserAuthController::class, 'logout'])->name('user.logout');
 Route::get('/user/orders', [UserOrderController::class, 'index'])->name('user.orders');
+Route::middleware('user')->group(function () {
+    Route::get('/user/profile', [UserProfileController::class, 'show'])->name('user.profile');
+    Route::put('/user/profile', [UserProfileController::class, 'update'])->name('user.profile.update');
+});
 
 /*
 |--------------------------------------------------------------------------

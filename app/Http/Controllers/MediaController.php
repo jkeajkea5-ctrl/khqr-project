@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 class MediaController extends Controller
 {
+    private const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+
     public function show(Request $request, string $path)
     {
         $path = MediaPath::normalize($path);
@@ -23,7 +25,7 @@ class MediaController extends Controller
         if ($request->headers->get('if-none-match') === $etag) {
             return response('', 304, [
                 'ETag' => $etag,
-                'Cache-Control' => 'public, max-age=31536000, immutable',
+                'Cache-Control' => self::CACHE_CONTROL,
             ]);
         }
 
@@ -35,7 +37,7 @@ class MediaController extends Controller
             }
         }, 200, [
             'Content-Type' => $mimeType,
-            'Cache-Control' => 'public, max-age=31536000, immutable',
+            'Cache-Control' => self::CACHE_CONTROL,
             'ETag' => $etag,
             'Content-Disposition' => 'inline; filename="'.basename($path).'"',
         ]);

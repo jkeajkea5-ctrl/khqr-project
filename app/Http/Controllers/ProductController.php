@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Slide;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -13,9 +14,15 @@ class ProductController extends Controller
     {
         $query = Product::with('category');
         $selectedCategory = null;
+        $categorySlug = trim((string) $request->input('category'));
+        $search = trim((string) $request->input('q'));
 
-        if ($request->filled('category')) {
-            $selectedCategory = Category::where('slug', $request->input('category'))->first();
+        if ($categorySlug !== '') {
+            $selectedCategory = Cache::remember(
+                'storefront:category:'.$categorySlug,
+                now()->addMinutes(10),
+                fn () => Category::where('slug', $categorySlug)->first()
+            );
 
             if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory->id);
@@ -24,8 +31,7 @@ class ProductController extends Controller
             }
         }
 
-        if ($request->filled('q')) {
-            $search = $request->input('q');
+        if ($search !== '') {
             $query->where(function ($innerQuery) use ($search) {
                 $innerQuery->where('name', 'like', '%'.$search.'%')
                     ->orWhere('description', 'like', '%'.$search.'%');
@@ -35,17 +41,24 @@ class ProductController extends Controller
         $products = $query->get();
         $this->appendTotalBought($products);
 
-        $categories = Category::orderBy('name')->get();
-        $counts = Product::query()
-            ->whereIn('category_id', $categories->pluck('id')->all())
-            ->get(['category_id'])
-            ->countBy(fn (Product $product): string => (string) $product->category_id);
-        $categories->transform(function (Category $category) use ($counts): Category {
-            $category->setAttribute('products_count', (int) ($counts[(string) $category->id] ?? 0));
+        $categories = Cache::remember('storefront:categories', now()->addMinutes(5), function () {
+            $categories = Category::orderBy('name')->get();
+            $counts = Product::query()
+                ->whereIn('category_id', $categories->pluck('id')->all())
+                ->get(['category_id'])
+                ->countBy(fn (Product $product): string => (string) $product->category_id);
 
-            return $category;
+            return $categories->transform(function (Category $category) use ($counts): Category {
+                $category->setAttribute('products_count', (int) ($counts[(string) $category->id] ?? 0));
+
+                return $category;
+            });
         });
-        $slides = Slide::where('is_active', true)->orderBy('position')->get();
+        $slides = Cache::remember(
+            'storefront:slides:active',
+            now()->addMinutes(5),
+            fn () => Slide::where('is_active', true)->orderBy('position')->get()
+        );
 
         return view('products.index', compact('products', 'slides', 'categories', 'selectedCategory'));
     }
@@ -69,42 +82,52 @@ class ProductController extends Controller
             ->all();
 
         $trackedIds = array_fill_keys($productIds, true);
-        $purchaseCounts = array_fill_keys($productIds, 0);
+        sort($productIds);
 
-        $paidOrders = Order::where('status', 'PAID')
-            ->where(function ($query) use ($productIds) {
-                $query->whereIn('product_id', $productIds)
-                    ->orWhereNotNull('items');
-            })
-            ->get(['product_id', 'items']);
+        $purchaseCounts = Cache::remember(
+            'storefront:purchase-counts:'.sha1(json_encode($productIds)),
+            now()->addMinutes(2),
+            function () use ($productIds, $trackedIds): array {
+                $purchaseCounts = array_fill_keys($productIds, 0);
 
-        foreach ($paidOrders as $order) {
-            $items = is_array($order->items) ? $order->items : [];
+                $paidOrders = Order::where('status', 'PAID')
+                    ->where(function ($query) use ($productIds) {
+                        $query->whereIn('product_id', $productIds)
+                            ->orWhereNotNull('items');
+                    })
+                    ->get(['product_id', 'items']);
 
-            if ($items !== []) {
-                foreach ($items as $item) {
-                    $itemProductId = $this->normalizeIdentifier($item['id'] ?? null);
+                foreach ($paidOrders as $order) {
+                    $items = is_array($order->items) ? $order->items : [];
 
-                    if ($itemProductId === null || !isset($trackedIds[$itemProductId])) {
+                    if ($items !== []) {
+                        foreach ($items as $item) {
+                            $itemProductId = $this->normalizeIdentifier($item['id'] ?? null);
+
+                            if ($itemProductId === null || !isset($trackedIds[$itemProductId])) {
+                                continue;
+                            }
+
+                            $qty = array_key_exists('qty', $item)
+                                ? max(0, (int) $item['qty'])
+                                : 1;
+
+                            $purchaseCounts[$itemProductId] += $qty;
+                        }
+
                         continue;
                     }
 
-                    $qty = array_key_exists('qty', $item)
-                        ? max(0, (int) $item['qty'])
-                        : 1;
+                    $orderProductId = $this->normalizeIdentifier($order->product_id);
 
-                    $purchaseCounts[$itemProductId] += $qty;
+                    if ($orderProductId !== null && isset($trackedIds[$orderProductId])) {
+                        $purchaseCounts[$orderProductId] += 1;
+                    }
                 }
 
-                continue;
+                return $purchaseCounts;
             }
-
-            $orderProductId = $this->normalizeIdentifier($order->product_id);
-
-            if ($orderProductId !== null && isset($trackedIds[$orderProductId])) {
-                $purchaseCounts[$orderProductId] += 1;
-            }
-        }
+        );
 
         $products->each(function (Product $product) use ($purchaseCounts): void {
             $key = $this->normalizeIdentifier($product->id);

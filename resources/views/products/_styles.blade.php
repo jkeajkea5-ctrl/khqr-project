@@ -1,6 +1,4 @@
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
 :root {
     --khqr-primary: #28559A;
     --khqr-primary-dark: #1F3E77;
@@ -320,6 +318,8 @@ body {
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
+    content-visibility: auto;
+    contain-intrinsic-size: 360px 420px;
 }
 
 .product-card:hover {

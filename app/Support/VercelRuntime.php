@@ -24,6 +24,7 @@ class VercelRuntime
         }
 
         self::ensureDirectory('/tmp/bootstrap/cache');
+        self::ensureDirectory('/tmp/cache/data');
         self::ensureDirectory('/tmp/views');
 
         self::setIfMissing('APP_PACKAGES_CACHE', '/tmp/bootstrap/cache/packages.php');
@@ -31,7 +32,9 @@ class VercelRuntime
         self::setIfMissing('VIEW_COMPILED_PATH', '/tmp/views');
         self::setIfMissing('LOG_CHANNEL', 'stderr');
         self::setIfMissing('SESSION_DRIVER', 'cookie');
-        self::setIfMissing('CACHE_STORE', 'array');
+        self::setIfMissing('CACHE_STORE', 'file');
+        self::setIfMissing('CACHE_PATH', '/tmp/cache/data');
+        self::setIfMissing('CACHE_LOCK_PATH', '/tmp/cache/data');
         self::setIfMissing('QUEUE_CONNECTION', 'sync');
         self::setIfMissing('APP_DEBUG', 'false');
 
@@ -65,11 +68,16 @@ class VercelRuntime
         $defaultConnection = (string) $app['config']->get('database.default');
 
         if ($defaultConnection !== 'sqlite') {
+            if (self::hasPreparedMarker($defaultConnection)) {
+                return;
+            }
+
             self::ensureRealDatabaseSchema($defaultConnection);
             self::repairLegacyMongoCatalog($defaultConnection);
             self::ensureBootstrapData();
             self::ensureAdminAccount();
             self::ensureManagedMediaInDisk();
+            self::writePreparedMarker($defaultConnection);
 
             return;
         }
@@ -193,7 +201,7 @@ class VercelRuntime
 
         $paths = [];
 
-        foreach (Product::query()->get() as $product) {
+        foreach (Product::query()->select(['image', 'colors'])->cursor() as $product) {
             $paths[] = MediaPath::normalize($product->getRawOriginal('image') ?: $product->image);
 
             foreach (self::productColorImages($product) as $imagePath) {
@@ -201,7 +209,7 @@ class VercelRuntime
             }
         }
 
-        foreach (Slide::query()->get() as $slide) {
+        foreach (Slide::query()->select(['image'])->cursor() as $slide) {
             $paths[] = MediaPath::normalize($slide->getRawOriginal('image') ?: $slide->image);
         }
 
@@ -418,6 +426,38 @@ class VercelRuntime
     private static function shouldAutoMigrate(): bool
     {
         return self::boolValue('VERCEL_AUTO_MIGRATE', true);
+    }
+
+    private static function hasPreparedMarker(string $defaultConnection): bool
+    {
+        return is_file(self::preparedMarkerPath($defaultConnection));
+    }
+
+    private static function writePreparedMarker(string $defaultConnection): void
+    {
+        $path = self::preparedMarkerPath($defaultConnection);
+        self::ensureDirectory(dirname($path));
+
+        @file_put_contents($path, json_encode([
+            'connection' => $defaultConnection,
+            'media_disk' => MediaStorage::disk(),
+            'database' => self::value('MONGODB_DATABASE') ?: self::value('DB_DATABASE') ?: null,
+            'commit' => self::value('VERCEL_GIT_COMMIT_SHA') ?: null,
+            'prepared_at' => gmdate(DATE_ATOM),
+        ], JSON_UNESCAPED_SLASHES));
+    }
+
+    private static function preparedMarkerPath(string $defaultConnection): string
+    {
+        $signature = implode('|', [
+            $defaultConnection,
+            MediaStorage::disk(),
+            self::value('MONGODB_DATABASE') ?: self::value('DB_DATABASE') ?: 'default',
+            self::value('ADMIN_EMAIL') ?: '',
+            self::value('VERCEL_GIT_COMMIT_SHA') ?: self::value('VERCEL_URL') ?: 'runtime',
+        ]);
+
+        return '/tmp/bootstrap/runtime-'.sha1($signature).'.json';
     }
 
     private static function boolValue(string $key, bool $default = false): bool

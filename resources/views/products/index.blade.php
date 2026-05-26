@@ -16,10 +16,22 @@
                 <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                     @if($slide->link)
                         <a href="{{ $slide->link }}">
-                            <img src="{{ $slide->image }}" alt="{{ $slide->title ?? 'Slide' }}">
+                            <img
+                                src="{{ $slide->image }}"
+                                alt="{{ $slide->title ?? 'Slide' }}"
+                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                decoding="async"
+                            >
                         </a>
                     @else
-                        <img src="{{ $slide->image }}" alt="{{ $slide->title ?? 'Slide' }}">
+                        <img
+                            src="{{ $slide->image }}"
+                            alt="{{ $slide->title ?? 'Slide' }}"
+                            loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                            fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                            decoding="async"
+                        >
                     @endif
                 </div>
                 @endforeach
@@ -71,7 +83,15 @@
             @forelse($products as $product)
             <div class="col-lg-4 col-md-6">
                 <div class="card-khqr product-card h-100">
-                    <img src="{{ $product->image }}" alt="{{ $product->name }}">
+                    <img
+                        src="{{ $product->image }}"
+                        alt="{{ $product->name }}"
+                        loading="{{ $loop->index < 2 ? 'eager' : 'lazy' }}"
+                        fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                        decoding="async"
+                        width="640"
+                        height="640"
+                    >
                     <div class="p-4 d-flex flex-column product-body">
                         <h5 class="fw-semibold">{{ $product->name }}</h5>
                         <p class="text-muted small flex-grow-1 d-none d-md-block">{{ \Illuminate\Support\Str::limit($product->description, 90) }}</p>

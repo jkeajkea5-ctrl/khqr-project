@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Services\BakongApiService;
-use Illuminate\Http\Request;
+use App\Services\OrderPaymentService;
 use App\Models\Product;
 use App\Models\Order;
 use App\Support\KhqrPayload;
 use App\Support\MediaPath;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-
 use KHQR\BakongKHQR;
 use KHQR\Helpers\KHQRData;
 use KHQR\Models\IndividualInfo;
@@ -23,7 +24,8 @@ class PaymentController extends Controller
     private const DEFAULT_EXPIRY_SECONDS = 900;
 
     public function __construct(
-        private readonly BakongApiService $bakongApi
+        private readonly BakongApiService $bakongApi,
+        private readonly OrderPaymentService $orderPayments,
     ) {
     }
 
@@ -35,10 +37,16 @@ class PaymentController extends Controller
         }
 
         return [
+            'payment_provider' => strtolower(trim((string) config('services.bakong.payment_provider', 'bakong'))),
             'token' => trim((string) config('services.bakong.token', '')),
             'account_id' => trim((string) config('services.bakong.account_id', '')),
             'merchant_name' => trim((string) config('services.bakong.merchant_name', '')),
             'merchant_city' => trim((string) config('services.bakong.merchant_city', 'Phnom Penh')),
+            'khqr_link_api_url' => rtrim(
+                trim((string) config('services.bakong.khqr_link_api_url', 'https://api.khqr.link')),
+                '/'
+            ),
+            'khqr_link_api_key' => trim((string) config('services.bakong.khqr_link_api_key', '')),
             'currency' => $currency,
             'currency_code' => $currency === 'KHR'
                 ? KHQRData::CURRENCY_KHR
@@ -75,6 +83,13 @@ class PaymentController extends Controller
         return 'ORD-'.now()->format('ymdHisv').'-'.Str::upper(Str::random(2));
     }
 
+    private function buildExpirationTimestamp(int $expirySeconds): string
+    {
+        $creationTimestamp = (int) floor(microtime(true) * 1000);
+
+        return (string) ($creationTimestamp + (max(60, $expirySeconds) * 1000));
+    }
+
     private function generateQr(float $amount, ?string $billNumber = null): array
     {
         $merchant = $this->merchantConfig();
@@ -82,6 +97,17 @@ class PaymentController extends Controller
             ? round($amount)
             : round($amount, 2);
         $billNumber = $billNumber ?: $this->buildBillNumber();
+
+        if (($merchant['payment_provider'] ?? 'bakong') === 'khqr_link') {
+            return $this->generateKhqrLinkQr($merchant, $amount, $billNumber);
+        }
+
+        return $this->generateBakongQr($merchant, $amount, $billNumber);
+    }
+
+    private function generateBakongQr(array $merchant, float $amount, string $billNumber): array
+    {
+        $expirationTimestamp = $this->buildExpirationTimestamp($merchant['expiry_seconds']);
 
         try {
             if ($merchant['token'] === '') {
@@ -96,24 +122,37 @@ class PaymentController extends Controller
                 throw new \RuntimeException('Bakong merchant name is not configured.');
             }
 
+            // Keep the KHQR payload minimal. Bakong mobile apps are stricter than
+            // the SDK verifier about optional additional-data tags.
             $info = new IndividualInfo(
-                bakongAccountID: $merchant['account_id'],
-                merchantName: $merchant['merchant_name'],
-                merchantCity: $merchant['merchant_city'],
-                currency: $merchant['currency_code'],
-                amount: $amount,
-                billNumber: $billNumber,
-                storeLabel: $merchant['store_label'],
-                terminalLabel: $merchant['terminal_label'],
-                purposeOfTransaction: $merchant['purpose']
+                $merchant['account_id'],
+                $merchant['merchant_name'],
+                $merchant['merchant_city'],
+                null,
+                null,
+                $merchant['currency_code'],
+                $amount
             );
+
+            // Set the expiry after construction so checkout still works if the
+            // deployed SDK build does not expose this constructor parameter name.
+            if (property_exists($info, 'expirationTimestamp')) {
+                $info->expirationTimestamp = $expirationTimestamp;
+            }
 
             $response = BakongKHQR::generateIndividual($info);
             $qr = $response->data['qr'] ?? null;
-            if ($qr) {
-                $qr = KhqrPayload::ensureDynamicExpiry($qr, $merchant['expiry_seconds']);
+            if (
+                $qr
+                && $merchant['currency_code'] === KHQRData::CURRENCY_USD
+                && method_exists(KhqrPayload::class, 'normalizeUsdAmount')
+            ) {
+                $qr = KhqrPayload::normalizeUsdAmount($qr, $amount);
             }
-            $md5 = $qr ? md5($qr) : null;
+            $md5 = $response->data['md5'] ?? ($qr ? md5($qr) : null);
+            if ($qr) {
+                $md5 = md5($qr);
+            }
 
             if (!$qr || !$md5) {
                 throw new \RuntimeException('Bakong did not return a QR payload.');
@@ -138,8 +177,10 @@ class PaymentController extends Controller
 
             return [
                 'qr' => $qr,
+                'qr_image_url' => null,
                 'md5' => $md5,
                 'bill_number' => $billNumber,
+                'expiry_seconds' => $merchant['expiry_seconds'],
                 'error' => null,
             ];
         } catch (\Throwable $e) {
@@ -155,10 +196,124 @@ class PaymentController extends Controller
 
             return [
                 'qr' => null,
+                'qr_image_url' => null,
                 'md5' => null,
                 'bill_number' => $billNumber,
+                'expiry_seconds' => $merchant['expiry_seconds'],
                 'error' => $e->getMessage(),
             ];
+        }
+    }
+
+    private function generateKhqrLinkQr(array $merchant, float $amount, string $billNumber): array
+    {
+        try {
+            if ($merchant['account_id'] === '') {
+                throw new \RuntimeException('Bakong account ID is not configured.');
+            }
+
+            if ($merchant['merchant_name'] === '') {
+                throw new \RuntimeException('Bakong merchant name is not configured.');
+            }
+
+            if ($merchant['khqr_link_api_url'] === '') {
+                throw new \RuntimeException('KHQR Link API URL is not configured.');
+            }
+
+            $requestPayload = [
+                'amount' => $merchant['currency'] === 'KHR'
+                    ? (string) round($amount)
+                    : number_format($amount, 2, '.', ''),
+                'bakongid' => $merchant['account_id'],
+                'merchantname' => $merchant['merchant_name'],
+            ];
+
+            $request = Http::acceptJson()
+                ->timeout(20)
+                ->connectTimeout(10);
+
+            if ($merchant['khqr_link_api_key'] !== '') {
+                $requestPayload['apikey'] = $merchant['khqr_link_api_key'];
+                $request = $request->withHeaders([
+                    'X-API-Key' => $merchant['khqr_link_api_key'],
+                ]);
+            }
+
+            $response = $request->get($merchant['khqr_link_api_url'].'/v1/khqr/create', $requestPayload);
+
+            $payload = $response->json();
+
+            if (!is_array($payload)) {
+                throw new \RuntimeException('KHQR Link returned an unexpected response.');
+            }
+
+            if (!$response->successful() || strtolower(trim((string) ($payload['status'] ?? ''))) !== 'success') {
+                $message = trim((string) ($payload['message'] ?? $payload['error'] ?? 'KHQR Link could not create a payment.'));
+
+                throw new \RuntimeException($message !== '' ? $message : 'KHQR Link could not create a payment.');
+            }
+
+            $md5 = trim((string) ($payload['md5'] ?? ''));
+            $qrImageUrl = $this->normalizeKhqrLinkQrUrl($payload['qr'] ?? null);
+
+            if ($md5 === '' || $qrImageUrl === null) {
+                throw new \RuntimeException('KHQR Link did not return a usable QR payload.');
+            }
+
+            return [
+                'qr' => null,
+                'qr_image_url' => $qrImageUrl,
+                'md5' => $md5,
+                'bill_number' => $billNumber,
+                'expiry_seconds' => $this->resolveRemoteExpirySeconds($payload, $merchant['expiry_seconds']),
+                'error' => null,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('KHQR Link generation failed', [
+                'account_id' => $merchant['account_id'],
+                'merchant_name' => $merchant['merchant_name'],
+                'currency' => $merchant['currency'],
+                'amount' => $amount,
+                'bill_number' => $billNumber,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'qr' => null,
+                'qr_image_url' => null,
+                'md5' => null,
+                'bill_number' => $billNumber,
+                'expiry_seconds' => $merchant['expiry_seconds'],
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    private function normalizeKhqrLinkQrUrl(mixed $url): ?string
+    {
+        $url = trim((string) $url);
+
+        if ($url === '') {
+            return null;
+        }
+
+        return preg_replace('/^http:\/\//i', 'https://', $url);
+    }
+
+    private function resolveRemoteExpirySeconds(array $payload, int $fallback): int
+    {
+        $expiresAt = trim((string) ($payload['expires_at'] ?? ''));
+
+        if ($expiresAt === '') {
+            return max(60, $fallback);
+        }
+
+        try {
+            $seconds = now()->diffInSeconds(Carbon::parse($expiresAt), false);
+
+            return max(60, (int) $seconds);
+        } catch (\Throwable) {
+            return max(60, $fallback);
         }
     }
 
@@ -202,9 +357,11 @@ class PaymentController extends Controller
 
         $qrPayload = $this->generateQr((float) $product->price);
         $qr = $qrPayload['qr'] ?? null;
+        $qrImageUrl = $qrPayload['qr_image_url'] ?? null;
         $md5 = $qrPayload['md5'] ?? null;
         $billNumber = $qrPayload['bill_number'] ?? null;
         $qrError = $qrPayload['error'] ?? null;
+        $expirySeconds = max(60, (int) ($qrPayload['expiry_seconds'] ?? $merchant['expiry_seconds']));
 
         $order = null;
         if ($md5) {
@@ -247,11 +404,12 @@ class PaymentController extends Controller
             'total'   => (float) $product->price,
             'currency' => $merchant['currency'],
             'qr'      => $qr,
+            'qrImageUrl' => $qrImageUrl,
             'md5'     => $md5,
             'billNumber' => $billNumber,
             'qrError' => $qrError ?? null,
             'orderId' => $order?->id,
-            'expirySeconds' => $merchant['expiry_seconds'],
+            'expirySeconds' => $expirySeconds,
         ]);
     }
 
@@ -288,9 +446,11 @@ class PaymentController extends Controller
 
         $qrPayload = $this->generateQr((float) $total);
         $qr = $qrPayload['qr'] ?? null;
+        $qrImageUrl = $qrPayload['qr_image_url'] ?? null;
         $md5 = $qrPayload['md5'] ?? null;
         $billNumber = $qrPayload['bill_number'] ?? null;
         $qrError = $qrPayload['error'] ?? null;
+        $expirySeconds = max(60, (int) ($qrPayload['expiry_seconds'] ?? $merchant['expiry_seconds']));
 
         $order = null;
         if ($md5) {
@@ -313,11 +473,12 @@ class PaymentController extends Controller
             'total'   => $total,
             'currency' => $merchant['currency'],
             'qr'      => $qr,
+            'qrImageUrl' => $qrImageUrl,
             'md5'     => $md5,
             'billNumber' => $billNumber,
             'qrError' => $qrError ?? null,
             'orderId' => $order?->id,
-            'expirySeconds' => $merchant['expiry_seconds'],
+            'expirySeconds' => $expirySeconds,
         ]);
     }
 
@@ -328,21 +489,31 @@ class PaymentController extends Controller
         ]);
 
         try {
+            $md5 = (string) $request->input('md5');
             Order::expirePending($this->merchantConfig()['expiry_seconds']);
-            $result = $this->bakongApi->checkTransactionByMD5($request->md5);
+            $result = $this->bakongApi->checkTransactionByMD5($md5);
 
             if (($result['responseCode'] ?? null) === 0) {
-                $order = Order::where('md5', $request->md5)->first();
+                $order = Order::where('md5', $md5)->first();
+
+                Log::info('Bakong verify success', [
+                    'md5' => $md5,
+                    'order_id' => $order?->id,
+                    'response_message' => $result['responseMessage'] ?? null,
+                ]);
 
                 if ($order && $order->status !== 'PAID') {
-                    $order->status = 'PAID';
-                    $order->paid_at = Carbon::now();
-                    $order->save();
+                    $this->orderPayments->markAsPaid($order, Carbon::now());
                     $this->removePurchasedCartItems($order);
                     $this->sendTelegramPaidInvoice($order);
                 }
 
                 $result['order_id'] = $order?->id;
+                if ($order) {
+                    $result['invoice_url'] = URL::temporarySignedRoute('invoice', now()->addDays(30), [
+                        'order' => $order,
+                    ]);
+                }
             }
 
             return response()->json($result);
@@ -350,9 +521,20 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             $message = $e->getMessage();
             $normalizedMessage = strtolower($message);
+            Log::warning('Bakong verify failed', [
+                'md5' => $request->input('md5'),
+                'error' => $message,
+            ]);
             $verificationUnavailable = str_contains($normalizedMessage, 'unable to reach the bakong api')
+                || str_contains($normalizedMessage, 'unable to reach the bakong verify proxy')
+                || str_contains($normalizedMessage, 'unable to reach the khqr link api')
                 || str_contains($normalizedMessage, 'not configured')
-                || str_contains($normalizedMessage, 'bakong api returned http 403');
+                || str_contains($normalizedMessage, 'bakong api returned http 403')
+                || str_contains($normalizedMessage, 'bakong verify proxy')
+                || str_contains($normalizedMessage, 'khqr link')
+                || str_contains($normalizedMessage, 'cloudfront')
+                || str_contains($normalizedMessage, 'request blocked')
+                || str_contains($normalizedMessage, 'request could not be satisfied');
 
             return response()->json([
                 'error' => $message,
@@ -362,64 +544,29 @@ class PaymentController extends Controller
         }
     }
 
-    public function invoice(Order $order)
+    public function invoice(Request $request, Order $order)
     {
         abort_if($order->status !== 'PAID', 403, 'Invoice available after payment only.');
-        return view('products.invoice', compact('order'));
+
+        $isOwner = Auth::check() && (string) Auth::id() === (string) $order->user_id;
+        $isAdmin = Auth::guard('admin')->check();
+        $hasValidSignature = $request->hasValidSignature();
+
+        abort_unless(
+            $isOwner || $isAdmin || $hasValidSignature,
+            403,
+            'You are not allowed to view this invoice.'
+        );
+
+        $order->loadMissing('user');
+
+        return response()
+            ->view('products.invoice', compact('order'))
+            ->header('Cache-Control', 'private, no-store, max-age=0');
     }
 
     private function sendTelegramPaidInvoice(Order $order): void
     {
-        $token = config('services.telegram.bot_token');
-        $chatId = config('services.telegram.chat_id');
-
-        if (!$token || !$chatId) {
-            return;
-        }
-
-        try {
-            $order->loadMissing('user');
-            $user = $order->user;
-            $items = $order->items ?? [];
-
-            $lines = [
-                'PAID INVOICE',
-                'Order ID: ' . $order->id,
-                'Reference: ' . ($order->bill_number ?: 'N/A'),
-                'Status: PAID',
-            ];
-
-            if ($user) {
-                $lines[] = 'Name: ' . ($user->name ?? 'N/A');
-                $lines[] = 'Phone: ' . ($user->phone ?? 'N/A');
-                $lines[] = 'User ID: ' . $user->id;
-            }
-
-            if (!empty($items)) {
-                $lines[] = 'Items:';
-                foreach ($items as $item) {
-                    $lines[] = '- ID: ' . ($item['id'] ?? 'N/A')
-                        . ' | Name: ' . ($item['name'] ?? 'N/A')
-                        . ' | Size: ' . ($item['size'] ?? 'N/A')
-                        . ' | Color: ' . ($item['color'] ?? 'N/A')
-                        . ' | Qty: ' . ($item['qty'] ?? 1);
-                }
-            } else {
-                $lines[] = 'Item Name: ' . $order->display_product_name;
-            }
-
-            $lines[] = 'Amount: ' . number_format((float) $order->amount, 2) . ' ' . ($order->currency ?? 'USD');
-            $lines[] = 'Invoice: ' . url('/invoice/' . $order->id);
-
-            Http::timeout(8)->post("https://api.telegram.org/bot{$token}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => implode("\n", $lines),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Telegram invoice send failed', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->orderPayments->sendTelegramPaidInvoice($order);
     }
 }

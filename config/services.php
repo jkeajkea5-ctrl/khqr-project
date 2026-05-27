@@ -2,8 +2,14 @@
 
 return [
     'bakong' => [
+        'payment_provider' => env('PAYMENT_PROVIDER', 'bakong'),
         'token' => env('BAKONG_TOKEN'),
         'api_url' => env('BAKONG_API_URL', 'https://api-bakong.nbc.gov.kh'),
+        'verify_url' => env('BAKONG_VERIFY_URL'),
+        'verify_secret' => env('BAKONG_VERIFY_SECRET'),
+        'verify_required' => env('BAKONG_VERIFY_REQUIRED', false),
+        'khqr_link_api_url' => env('KHQR_LINK_API_URL', 'https://api.khqr.link'),
+        'khqr_link_api_key' => env('KHQR_LINK_API_KEY'),
         'account_id' => env('BAKONG_ACCOUNT_ID'),
         'merchant_name' => env('BAKONG_MERCHANT_NAME'),
         'merchant_city' => env('BAKONG_MERCHANT_CITY', 'Phnom Penh'),

@@ -27,6 +27,11 @@
                 $expiresIn = max(60, (int) ($expirySeconds ?? 900));
                 $formattedExpiresIn = sprintf('%02d:%02d', intdiv($expiresIn, 60), $expiresIn % 60);
             @endphp
+            @php
+                $requestBase = rtrim(request()->getBaseUrl(), '/');
+                $withBase = static fn (string $path): string => ($requestBase !== '' ? $requestBase : '').$path;
+                $autoConfirmStartsImmediately = true;
+            @endphp
             @if(!empty($items ?? []))
                 <div class="row g-4">
                     <div class="col-lg-6 text-start">
@@ -63,7 +68,34 @@
                             </div>
 
                             <div id="verification-status" class="small text-muted mt-3">
-                                Waiting for Bakong payment confirmation...
+                                Scan the QR code and complete payment.
+                            </div>
+                            <div id="verification-error" class="alert alert-warning mt-3 text-start d-none" role="alert"></div>
+                            <button id="retry-verification" type="button" class="btn btn-ghost btn-sm mt-2">
+                                Retry verification
+                            </button>
+                        @elseif(!empty($qrImageUrl ?? null))
+                            <div class="qr-box">
+                                <img
+                                    src="{{ $qrImageUrl }}"
+                                    alt="KHQR payment QR code"
+                                    width="260"
+                                    height="260"
+                                    class="img-fluid"
+                                >
+                            </div>
+                            @if(!empty($billNumber ?? null))
+                                <div class="mt-3 small fw-semibold">Reference: {{ $billNumber }}</div>
+                            @endif
+                            <p class="text-muted mt-3">Scan this QR code to Pay This Payment.</p>
+
+                            <div class="summary-card d-inline-block mt-2">
+                                <div id="countdown" class="timer-number">{{ $formattedExpiresIn }}</div>
+                                <div class="text-muted">This page will expire in <span id="time-left">{{ $formattedExpiresIn }}</span>.</div>
+                            </div>
+
+                            <div id="verification-status" class="small text-muted mt-3">
+                                Scan the QR code and complete payment.
                             </div>
                             <div id="verification-error" class="alert alert-warning mt-3 text-start d-none" role="alert"></div>
                             <button id="retry-verification" type="button" class="btn btn-ghost btn-sm mt-2">
@@ -75,6 +107,7 @@
                                 <div class="small text-muted text-start">Reason: {{ $qrError }}</div>
                             @endif
                         @endif
+
                     </div>
                 </div>
             @else
@@ -91,7 +124,7 @@
 @endsection
 
 @section('scripts')
-@if(isset($qr) && $qr)
+@if((isset($qr) && $qr) || !empty($qrImageUrl ?? null))
 <script>
 let timeLeft = {{ $expiresIn }};
 const countdownElement = document.getElementById('countdown');
@@ -99,14 +132,19 @@ const timeLeftText = document.getElementById('time-left');
 const statusElement = document.getElementById('verification-status');
 const errorElement = document.getElementById('verification-error');
 const retryButton = document.getElementById('retry-verification');
-const verifyUrl = @json(route('verify.transaction'));
+const verifyUrl = @json($withBase(route('verify.transaction', [], false)));
 const csrfToken = @json(csrf_token());
 const md5 = @json($md5);
 const fallbackOrderId = @json((string) ($orderId ?? ''));
-const invoiceBaseUrl = @json(url('/invoice'));
-const homeUrl = @json(route('home'));
+const invoiceBaseUrl = @json($withBase('/invoice'));
+const homeUrl = @json($withBase(route('home', [], false)));
+const verifyIntervalMs = 2000;
+const autoConfirmStartsImmediately = @json($autoConfirmStartsImmediately);
 let verifyInFlight = false;
 let verificationEnabled = true;
+let autoConfirmEnabled = autoConfirmStartsImmediately;
+let countdownTimer = null;
+let verificationTimer = null;
 
 const formatTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -134,21 +172,59 @@ const clearVerificationError = () => {
 };
 
 const isConfigurationError = (message) => /not configured/i.test(message);
+const isSessionError = (message) => /session expired|sign in again|unexpected verification response/i.test(message);
+
+const stopAutoConfirm = () => {
+    if (verificationTimer) {
+        clearTimeout(verificationTimer);
+        verificationTimer = null;
+    }
+};
+
+const scheduleAutoConfirm = () => {
+    if (!autoConfirmEnabled || !verificationEnabled || verifyInFlight || timeLeft <= 0) {
+        return;
+    }
+
+    stopAutoConfirm();
+    verificationTimer = window.setTimeout(() => {
+        verificationTimer = null;
+        pollVerification();
+    }, verifyIntervalMs);
+};
 
 const pollVerification = async () => {
     if (verifyInFlight || !verificationEnabled) return;
 
     verifyInFlight = true;
+    let shouldScheduleAutoConfirm = false;
+
+    if (retryButton) {
+        retryButton.disabled = true;
+    }
 
     try {
         const response = await fetch(verifyUrl, {
             method: "POST",
             headers: {
+                "Accept": "application/json",
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": csrfToken
+                "X-CSRF-TOKEN": csrfToken,
+                "X-Requested-With": "XMLHttpRequest"
             },
+            cache: "no-store",
+            credentials: "same-origin",
             body: JSON.stringify({ md5 })
         });
+
+        if (response.redirected) {
+            throw new Error('Your session expired. Please refresh this checkout page and sign in again.');
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error('Unexpected verification response. Please refresh this checkout page.');
+        }
 
         const data = await response.json().catch(() => ({}));
 
@@ -159,8 +235,14 @@ const pollVerification = async () => {
         clearVerificationError();
 
         if (data.responseCode === 0) {
-            clearInterval(timer);
+            clearInterval(countdownTimer);
+            stopAutoConfirm();
             setStatus('Payment confirmed. Redirecting to your invoice...');
+            if (data.invoice_url) {
+                window.location.href = data.invoice_url;
+                return;
+            }
+
             const orderId = data.order_id || fallbackOrderId;
             if (!orderId) {
                 throw new Error('Payment was confirmed, but the invoice link is missing.');
@@ -171,7 +253,8 @@ const pollVerification = async () => {
 
         if (data.verificationUnavailable) {
             verificationEnabled = false;
-            clearInterval(timer);
+            autoConfirmEnabled = false;
+            stopAutoConfirm();
             setStatus('Bakong verification is temporarily unavailable on this deployment.');
             setVerificationError(data.error || 'Unable to verify payment right now.');
 
@@ -182,48 +265,80 @@ const pollVerification = async () => {
             return;
         }
 
-        setStatus('QR generated. Waiting for Bakong payment confirmation...');
+        if (autoConfirmEnabled) {
+            setStatus('Payment not confirmed yet. Auto confirm is still checking...');
+            shouldScheduleAutoConfirm = true;
+        } else {
+            setStatus('Payment not confirmed yet. Click retry verification after completing payment.');
+        }
     } catch (error) {
         const message = error.message || 'Unable to verify payment right now.';
 
         if (isConfigurationError(message)) {
             verificationEnabled = false;
-            clearInterval(timer);
+            autoConfirmEnabled = false;
+            stopAutoConfirm();
             setStatus('Bakong verification is not configured for this deployment.');
             if (retryButton) {
                 retryButton.disabled = true;
             }
+        } else if (isSessionError(message)) {
+            verificationEnabled = false;
+            autoConfirmEnabled = false;
+            stopAutoConfirm();
+            setStatus('Checkout verification stopped because your session needs attention.');
         } else {
             setStatus('Bakong verification is temporarily unavailable.');
+            if (autoConfirmEnabled) {
+                shouldScheduleAutoConfirm = true;
+            }
         }
 
         setVerificationError(message);
     } finally {
         verifyInFlight = false;
+
+        if (retryButton && verificationEnabled) {
+            retryButton.disabled = false;
+        }
+
+        if (shouldScheduleAutoConfirm) {
+            scheduleAutoConfirm();
+        }
     }
 };
 
-const timer = setInterval(() => {
+countdownTimer = setInterval(() => {
     timeLeft--;
     const formattedTime = formatTime(Math.max(0, timeLeft));
     if (countdownElement) countdownElement.textContent = formattedTime;
     if (timeLeftText) timeLeftText.textContent = formattedTime;
 
-    if (timeLeft > 0 && verificationEnabled) {
-        pollVerification();
-    }
-
     if (timeLeft <= 0) {
-        clearInterval(timer);
+        clearInterval(countdownTimer);
+        stopAutoConfirm();
         window.location.href = homeUrl;
     }
 }, 1000);
 
 if (retryButton) {
-    retryButton.addEventListener('click', pollVerification);
+    retryButton.addEventListener('click', () => {
+        autoConfirmEnabled = true;
+        clearVerificationError();
+        retryButton.textContent = 'Auto confirm running';
+        setStatus('Checking Bakong payment status...');
+        pollVerification();
+    });
 }
 
-pollVerification();
+if (autoConfirmStartsImmediately && verificationEnabled) {
+    if (retryButton) {
+        retryButton.textContent = 'Auto confirm running';
+    }
+
+    setStatus('QR generated. Waiting for Bakong payment confirmation...');
+    pollVerification();
+}
 </script>
 @endif
 @endsection

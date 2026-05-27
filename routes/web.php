@@ -38,6 +38,7 @@ Route::get('/user/register', [UserAuthController::class, 'showRegister'])->name(
 Route::post('/user/register', [UserAuthController::class, 'register'])->name('user.register.submit');
 Route::post('/user/logout', [UserAuthController::class, 'logout'])->name('user.logout');
 Route::get('/user/orders', [UserOrderController::class, 'index'])->name('user.orders');
+Route::get('/invoice/{order}', [PaymentController::class, 'invoice'])->name('invoice');
 Route::middleware('user')->group(function () {
     Route::get('/user/profile', [UserProfileController::class, 'show'])->name('user.profile');
     Route::put('/user/profile', [UserProfileController::class, 'update'])->name('user.profile.update');
@@ -62,9 +63,9 @@ Route::match(['get','post'], '/cart/clear', [CartController::class, 'clear'])->n
 Route::middleware('user')->group(function () {
     Route::match(['get','post'], '/checkout/cart', [PaymentController::class, 'checkoutCart'])->name('checkout.cart');
     Route::post('/checkout/{id}', [PaymentController::class, 'checkout'])->name('checkout');
-    Route::post('/verify', [PaymentController::class, 'verifyTransaction'])->name('verify.transaction');
-    Route::get('/invoice/{order}', [PaymentController::class, 'invoice'])->name('invoice');
 });
+
+Route::post('/verify', [PaymentController::class, 'verifyTransaction'])->name('verify.transaction');
 
 /*
 |--------------------------------------------------------------------------

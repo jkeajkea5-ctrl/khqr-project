@@ -7,6 +7,46 @@ use KHQR\Helpers\Utils;
 
 final class KhqrPayload
 {
+    public static function normalizeUsdAmount(string $qr, float $amount): string
+    {
+        $segments = self::segments($qr);
+        if ($segments === []) {
+            return $qr;
+        }
+
+        $normalizedAmount = number_format($amount, 2, '.', '');
+        $payload = '';
+        $hasUsdCurrency = false;
+        $hasAmount = false;
+
+        foreach ($segments as $segment) {
+            if ($segment['tag'] === EMV::CRC) {
+                continue;
+            }
+
+            if ($segment['tag'] === EMV::TRANSACTION_CURRENCY) {
+                $hasUsdCurrency = $segment['value'] === '840';
+            }
+
+            if ($segment['tag'] === EMV::TRANSACTION_AMOUNT) {
+                $payload .= self::tlv($segment['tag'], $normalizedAmount);
+                $hasAmount = true;
+
+                continue;
+            }
+
+            $payload .= $segment['raw'];
+        }
+
+        if (!$hasUsdCurrency || !$hasAmount) {
+            return $qr;
+        }
+
+        $crcBase = $payload.EMV::CRC.EMV::CRC_LENGTH;
+
+        return $crcBase.Utils::crc16($crcBase);
+    }
+
     public static function ensureDynamicExpiry(string $qr, int $expirySeconds): string
     {
         if ($expirySeconds < 1) {

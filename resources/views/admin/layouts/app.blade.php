@@ -138,6 +138,13 @@
         overflow-x: auto;
     }
 
+    .admin-card,
+    .admin-topbar,
+    .admin-list-item,
+    .view-content {
+        min-width: 0;
+    }
+
     .admin-actions {
         display: flex;
         justify-content: flex-end;
@@ -283,9 +290,147 @@
         border-radius: 50% !important;
     }
 
+    .view-content .pagination {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 767px) {
+        .admin-main {
+            padding: 14px 12px 86px !important;
+        }
+
+        .admin-topbar {
+            border-radius: 14px;
+            padding: 0.65rem 0.75rem;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+
+        .admin-topbar h4 {
+            font-size: 1rem;
+        }
+
+        .admin-topbar > .d-flex:last-child {
+            flex: 0 0 auto;
+        }
+
+        .admin-page-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 6px;
+        }
+
+        .admin-page-header h2 {
+            font-size: 1.35rem;
+        }
+
+        .admin-card {
+            border-radius: 14px;
+        }
+
+        .admin-card.p-4,
+        .admin-card .p-4,
+        .card-body.p-4 {
+            padding: 1rem !important;
+        }
+
+        .admin-card .p-md-5,
+        .card-body.p-md-5 {
+            padding: 1rem !important;
+        }
+
+        .admin-list-item {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .admin-list-item > .d-flex:last-child {
+            width: 100%;
+            align-items: stretch !important;
+        }
+
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .admin-actions form,
+        .admin-actions .btn,
+        .admin-actions .admin-quick-btn {
+            width: 100%;
+        }
+
+        .admin-actions .btn,
+        .admin-quick-btn {
+            min-height: 42px;
+            padding: 0.55rem 0.7rem;
+            font-size: 0.84rem;
+            border-radius: 10px;
+            white-space: normal;
+            text-align: center;
+        }
+
+        .admin-card .d-flex.gap-2.mt-3,
+        .admin-card .d-flex.gap-2 {
+            flex-wrap: wrap;
+        }
+
+        .admin-card .d-flex.gap-2.mt-3 > *,
+        .admin-card .d-flex.gap-2 > .admin-quick-btn,
+        .admin-card .d-flex.gap-2 > form {
+            flex: 1 1 140px;
+        }
+
+        .form-control-lg,
+        .form-select-lg {
+            min-height: 46px;
+            font-size: 1rem;
+        }
+
+        .form-control,
+        .form-select,
+        textarea {
+            max-width: 100%;
+        }
+
+        input[type="file"] {
+            font-size: 0.9rem;
+        }
+
+        .admin-card img {
+            max-width: 100%;
+        }
+
+        .admin-muted,
+        .admin-card .small,
+        .admin-card td {
+            overflow-wrap: anywhere;
+        }
+
+        .menu-trigger {
+            bottom: 18px;
+            right: 14px;
+            width: 48px;
+            height: 48px;
+        }
+
+        .admin-sidebar {
+            width: min(86vw, 320px);
+            padding: 20px !important;
+        }
+
+        .view-content .pagination {
+            justify-content: center;
+        }
     }
 </style>
 @endsection

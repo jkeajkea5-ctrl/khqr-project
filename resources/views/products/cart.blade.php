@@ -182,8 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="price mt-2">${{ number_format($item['price'], 2) }}</div>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <form action="{{ route('cart.update', $item['key']) }}" method="POST" class="d-flex align-items-center gap-2">
+                            <div class="cart-card-actions mt-3">
+                                <form action="{{ route('cart.update', $item['key']) }}" method="POST" class="cart-update-form">
                                     @csrf
                                     @method('PUT')
                                     <button type="button" class="qty-btn" onclick="stepQty(this, -1)">-</button>
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <button type="button" class="qty-btn" onclick="stepQty(this, 1)">+</button>
                                     <button class="btn btn-ghost btn-sm" type="submit">Update</button>
                                 </form>
-                                <form action="{{ route('cart.remove', $item['key']) }}" method="POST">
+                                <form action="{{ route('cart.remove', $item['key']) }}" method="POST" class="cart-remove-form">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>

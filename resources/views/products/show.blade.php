@@ -93,10 +93,6 @@
         <i class="bi bi-bag-plus"></i>
         Add to cart
     </button>
-    <a href="{{ route('home') }}" class="btn btn-ghost w-100">
-        <i class="bi bi-arrow-left"></i>
-        Back to home
-    </a>
 </div>
 @endsection
 

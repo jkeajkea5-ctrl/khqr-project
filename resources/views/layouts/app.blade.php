@@ -161,6 +161,67 @@ rel="stylesheet">
  .password-field .password-toggle i {
      pointer-events: none;
  }
+
+ .khqr-pagination {
+     display: flex;
+     flex-wrap: wrap;
+     align-items: center;
+     justify-content: space-between;
+     gap: 12px;
+ }
+
+ .khqr-pagination-summary {
+     color: #64748b;
+     font-size: 0.95rem;
+ }
+
+ .khqr-pagination .pagination {
+     gap: 8px;
+ }
+
+ .khqr-pagination .page-item {
+     list-style: none;
+ }
+
+ .khqr-pagination .page-link {
+     min-width: 42px;
+     padding: 0.55rem 0.85rem;
+     border: 1px solid rgba(15, 23, 42, 0.12);
+     background: #ffffff;
+     color: #0f172a;
+     font-weight: 600;
+     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+ }
+
+ .khqr-pagination .page-link:hover {
+     background: #f8fafc;
+     color: #0f172a;
+ }
+
+ .khqr-pagination .page-item.active .page-link {
+     background: #28559A;
+     border-color: #28559A;
+     color: #ffffff;
+ }
+
+ .khqr-pagination .page-item.disabled .page-link {
+     background: #e2e8f0;
+     border-color: #e2e8f0;
+     color: #94a3b8;
+     box-shadow: none;
+ }
+
+ @media (max-width: 576px) {
+     .khqr-pagination {
+         flex-direction: column;
+         align-items: stretch;
+     }
+
+     .khqr-pagination .pagination {
+         justify-content: center;
+         flex-wrap: wrap;
+     }
+ }
  </style>
 </head>
 <body>

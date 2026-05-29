@@ -105,7 +105,7 @@
 
         .hero-metric {
             border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 18px;
+            border-radius: 2px;
             padding: 14px 16px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -223,7 +223,7 @@
         .pulse-stat,
         .insight-tile {
             border: 1px solid var(--admin-border);
-            border-radius: 18px;
+            border-radius: 2px;
             padding: 14px 16px;
             background: linear-gradient(180deg, rgba(243, 246, 251, 0.92), #ffffff);
         }
@@ -353,7 +353,7 @@
             color: var(--admin-muted);
             background: linear-gradient(180deg, rgba(243, 246, 251, 0.9), rgba(255, 255, 255, 0.98));
             border: 1px dashed rgba(100, 116, 139, 0.28);
-            border-radius: 18px;
+            border-radius: 2px;
             padding: 24px;
         }
 
@@ -458,7 +458,7 @@
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card stat-purple overview-metric-card">
+        <div class="stat-card stat-red overview-metric-card">
             <div class="overview-metric-label">Orders</div>
             <div class="overview-metric-value">{{ number_format($totalOrders) }}</div>
             <div class="overview-metric-note">{{ number_format($failedOrders) }} failed or expired</div>
@@ -472,7 +472,7 @@
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card stat-orange overview-metric-card">
+        <div class="stat-card stat-yellow overview-metric-card">
             <div class="overview-metric-label">Pending</div>
             <div class="overview-metric-value">{{ number_format($pendingOrders) }}</div>
             <div class="overview-metric-note">Awaiting payment confirmation</div>

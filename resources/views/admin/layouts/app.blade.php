@@ -21,6 +21,7 @@
         min-height: 100vh;
         background: var(--admin-bg);
         color: var(--admin-text);
+        overflow-x: hidden;
     }
 
     .admin-sidebar {
@@ -33,6 +34,7 @@
     .admin-main {
         flex: 1 1 auto;
         min-width: 0;
+        width: 100%;
     }
 
     .admin-nav a {
@@ -40,7 +42,7 @@
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        border-radius: 14px;
+        border-radius: 2px;
         color: var(--admin-ink);
         text-decoration: none;
         font-weight: 600;
@@ -105,7 +107,7 @@
     .admin-topbar {
         background: #ffffff;
         border: 1px solid var(--admin-border);
-        border-radius: 20px;
+        border-radius: 2px;
         padding: 0.75rem 1rem;
         box-shadow: var(--admin-shadow);
         margin-bottom: 16px !important;
@@ -128,7 +130,7 @@
     .admin-card {
         background: var(--admin-card);
         border: 1px solid var(--admin-border);
-        border-radius: 18px;
+        border-radius: 2px;
         box-shadow: var(--admin-shadow);
         color: var(--admin-text);
         animation: fadeUp 0.4s ease;
@@ -136,6 +138,7 @@
 
     .admin-table-responsive {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .admin-card,
@@ -170,6 +173,7 @@
         min-height: 40px;
         padding: 0.6rem 0.9rem;
         border: 1px solid transparent;
+        border-radius: 2px;
         color: #ffffff;
         text-decoration: none;
         font-size: 0.88rem;
@@ -198,23 +202,39 @@
     }
 
     .admin-quick-btn-add {
-        background: #bc7080;
+        background: #22c55e;
+    }
+
+    .admin-quick-btn-add:hover {
+        background: #16a34a;
     }
 
     .admin-quick-btn-edit {
-        background: #746088;
+        background: #3778C2;
+    }
+
+    .admin-quick-btn-edit:hover {
+        background: #28559A;
     }
 
     .admin-quick-btn-delete {
-        background: #3f5c83;
+        background: #ef4444;
+    }
+
+    .admin-quick-btn-delete:hover {
+        background: #dc2626;
     }
 
     .admin-quick-btn-neutral {
-        background: #64748b;
+        background: #3778C2;
+    }
+
+    .admin-quick-btn-neutral:hover {
+        background: #28559A;
     }
 
     .admin-table-compact {
-        width: auto;
+        width: 100%;
         min-width: 520px;
     }
 
@@ -225,7 +245,7 @@
         color: #ffffff;
         border: none;
         padding: 10px 18px;
-        border-radius: 999px;
+        border-radius: 2px;
         font-weight: 600;
         box-shadow: 0 12px 24px rgba(40, 85, 154, 0.3);
     }
@@ -236,15 +256,15 @@
     }
 
     .stat-card {
-        border-radius: 18px;
+        border-radius: 2px;
         padding: 16px;
         color: #ffffff;
     }
 
     .stat-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .stat-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
     .stat-blue { background: linear-gradient(135deg, #3778C2, #28559A); }
-    .stat-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .stat-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stat-yellow { background: linear-gradient(135deg, #eab308, #ca8a04); }
 
     .admin-list-item {
         display: flex;
@@ -295,6 +315,55 @@
         gap: 6px;
     }
 
+    .pagination .page-link {
+        color: var(--admin-primary);
+        border: 1px solid var(--admin-border);
+        background: #ffffff;
+        border-radius: 2px;
+        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--admin-primary);
+        color: #ffffff;
+        border-color: var(--admin-primary);
+        transform: translateY(-1px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--admin-primary);
+        color: #ffffff;
+        border-color: var(--admin-primary);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background: #f3f6fb;
+        color: var(--admin-muted);
+        border-color: var(--admin-border);
+        cursor: not-allowed;
+    }
+
+    .pagination .page-item:first-child .page-link,
+    .pagination .page-item:last-child .page-link {
+        background: #ffffff;
+        color: var(--admin-primary);
+        border: 1px solid var(--admin-border);
+        border-radius: 2px;
+        min-width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination .page-item:first-child .page-link:hover,
+    .pagination .page-item:last-child .page-link:hover {
+        background: var(--admin-primary);
+        color: #ffffff;
+        border-color: var(--admin-primary);
+    }
+
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -306,7 +375,7 @@
         }
 
         .admin-topbar {
-            border-radius: 14px;
+            border-radius: 2px;
             padding: 0.65rem 0.75rem;
             align-items: flex-start !important;
             gap: 10px;
@@ -332,7 +401,7 @@
         }
 
         .admin-card {
-            border-radius: 14px;
+            border-radius: 2px;
         }
 
         .admin-card.p-4,
@@ -374,7 +443,7 @@
             min-height: 42px;
             padding: 0.55rem 0.7rem;
             font-size: 0.84rem;
-            border-radius: 10px;
+            border-radius: 2px;
             white-space: normal;
             text-align: center;
         }

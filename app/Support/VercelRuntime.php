@@ -25,11 +25,12 @@ class VercelRuntime
 
         self::ensureDirectory('/tmp/bootstrap/cache');
         self::ensureDirectory('/tmp/cache/data');
-        self::ensureDirectory('/tmp/views');
+        $compiledViewPath = self::compiledViewPath();
+        self::ensureDirectory($compiledViewPath);
 
         self::setIfMissing('APP_PACKAGES_CACHE', '/tmp/bootstrap/cache/packages.php');
         self::setIfMissing('APP_SERVICES_CACHE', '/tmp/bootstrap/cache/services.php');
-        self::setIfMissing('VIEW_COMPILED_PATH', '/tmp/views');
+        self::set('VIEW_COMPILED_PATH', $compiledViewPath);
         self::setIfMissing('LOG_CHANNEL', 'stderr');
         self::setIfMissing('SESSION_DRIVER', 'cookie');
         self::setIfMissing('CACHE_STORE', 'file');
@@ -398,6 +399,15 @@ class VercelRuntime
         }
 
         mkdir($path, 0777, true);
+    }
+
+    private static function compiledViewPath(): string
+    {
+        $signature = self::value('VERCEL_GIT_COMMIT_SHA')
+            ?: self::value('VERCEL_URL')
+            ?: 'runtime';
+
+        return '/tmp/views/'.sha1($signature);
     }
 
     private static function setIfMissing(string $key, string $value): void

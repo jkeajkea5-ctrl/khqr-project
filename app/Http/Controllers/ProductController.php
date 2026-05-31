@@ -38,8 +38,8 @@ class ProductController extends Controller
             });
         }
 
-        $products = $query->get();
-        $this->appendTotalBought($products);
+        $products = $query->latest()->paginate(12)->withQueryString();
+        $this->appendTotalBought($products->getCollection());
 
         $categories = Cache::remember('storefront:categories', now()->addMinutes(5), function () {
             $categories = Category::orderBy('name')->get();

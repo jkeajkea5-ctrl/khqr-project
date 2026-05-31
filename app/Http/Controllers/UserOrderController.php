@@ -15,8 +15,8 @@ class UserOrderController extends Controller
 
         Order::expirePending(2000);
         $orders = Order::where('user_id', Auth::id())
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('created_at')
+            ->paginate(10);
 
         return view('users.orders', compact('orders'));
     }

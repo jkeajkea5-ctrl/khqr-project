@@ -49,6 +49,12 @@
                 <div class="text-center text-muted py-4">No orders yet.</div>
             @endforelse
         </div>
+
+        @if($orders->hasPages())
+            <div class="mt-4">
+                {{ $orders->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

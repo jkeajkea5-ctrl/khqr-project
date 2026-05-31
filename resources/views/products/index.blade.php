@@ -129,6 +129,12 @@
             </div>
             @endforelse
         </div>
+
+        @if($products->hasPages())
+            <div class="mt-4">
+                {{ $products->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

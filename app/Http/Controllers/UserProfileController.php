@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -22,12 +21,12 @@ class UserProfileController extends Controller
         Order::expirePending(2000);
 
         $user = Auth::user();
-        $orders = Order::where('user_id', $user->getAuthIdentifier())
+        $ordersQuery = Order::where('user_id', $user->getAuthIdentifier());
+        $stats = $this->buildStats($ordersQuery);
+        $recentOrders = (clone $ordersQuery)
             ->orderByDesc('created_at')
+            ->take(4)
             ->get();
-
-        $stats = $this->buildStats($orders);
-        $recentOrders = $orders->take(4);
 
         return view('users.profile', compact('user', 'stats', 'recentOrders'));
     }
@@ -80,19 +79,20 @@ class UserProfileController extends Controller
             ->with('success', 'Your profile was updated successfully.');
     }
 
-    private function buildStats(Collection $orders): array
+    private function buildStats($ordersQuery): array
     {
-        $paidOrders = $orders->where('status', 'PAID');
-        $pendingOrders = $orders->where('status', 'PENDING');
-        $failedOrders = $orders->where('status', 'FAILED');
+        $paidOrdersQuery = (clone $ordersQuery)->where('status', 'PAID');
+        $latestPaidOrder = (clone $paidOrdersQuery)
+            ->latest('paid_at')
+            ->first(['paid_at']);
 
         return [
-            'total_orders' => $orders->count(),
-            'paid_orders' => $paidOrders->count(),
-            'pending_orders' => $pendingOrders->count(),
-            'failed_orders' => $failedOrders->count(),
-            'paid_total' => (float) $paidOrders->sum(fn (Order $order): float => (float) $order->amount),
-            'latest_paid_at' => optional($paidOrders->first())->paid_at,
+            'total_orders' => (clone $ordersQuery)->count(),
+            'paid_orders' => (clone $paidOrdersQuery)->count(),
+            'pending_orders' => (clone $ordersQuery)->where('status', 'PENDING')->count(),
+            'failed_orders' => (clone $ordersQuery)->where('status', 'FAILED')->count(),
+            'paid_total' => (float) (clone $paidOrdersQuery)->sum('amount'),
+            'latest_paid_at' => $latestPaidOrder?->paid_at,
         ];
     }
 

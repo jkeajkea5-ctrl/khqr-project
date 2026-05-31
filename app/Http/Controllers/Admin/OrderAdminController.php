@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class OrderAdminController extends Controller
@@ -23,72 +24,76 @@ class OrderAdminController extends Controller
     public function dashboard()
     {
         $this->expirePendingOrders();
-        $totalProducts = Product::count();
-        $totalOrders   = Order::count();
-        $paidOrders    = Order::where('status', 'PAID')->count();
-        $pendingOrders = Order::where('status', 'PENDING')->count();
-        $failedOrders  = Order::where('status', 'FAILED')->count();
-        $totalAdmins   = Admin::count();
-        $totalUsers    = User::count();
+        $dashboardData = Cache::remember('admin:dashboard:summary:v1', now()->addSeconds(45), function (): array {
+            $totalProducts = Product::count();
+            $totalOrders   = Order::count();
+            $paidOrders    = Order::where('status', 'PAID')->count();
+            $pendingOrders = Order::where('status', 'PENDING')->count();
+            $failedOrders  = Order::where('status', 'FAILED')->count();
+            $totalAdmins   = Admin::count();
+            $totalUsers    = User::count();
 
-        $paidRevenue = (float) Order::where('status', 'PAID')->sum('amount');
-        $latestPaid = Order::where('status', 'PAID')->latest('paid_at')->take(10)->get();
-        $latestPaid->each(function (Order $order): void {
-            $order->setAttribute(
-                'formatted_amount',
-                $this->formatAmountByCurrency((float) $order->amount, $order->currency),
+            $paidRevenue = (float) Order::where('status', 'PAID')->sum('amount');
+            $latestPaid = Order::where('status', 'PAID')->latest('paid_at')->take(10)->get();
+            $latestPaid->each(function (Order $order): void {
+                $order->setAttribute(
+                    'formatted_amount',
+                    $this->formatAmountByCurrency((float) $order->amount, $order->currency),
+                );
+            });
+            $paidOrderData = Order::where('status', 'PAID')
+                ->orderBy('paid_at')
+                ->get([
+                    'id',
+                    'user_id',
+                    'product_id',
+                    'product_name',
+                    'amount',
+                    'currency',
+                    'paid_at',
+                    'created_at',
+                    'items',
+                ]);
+
+            try {
+                $analytics = $this->buildSalesAnalytics(
+                    $paidOrderData,
+                    $totalOrders,
+                    $paidOrders,
+                    $pendingOrders,
+                    $failedOrders,
+                    $paidRevenue,
+                );
+            } catch (\Throwable $exception) {
+                Log::warning('Admin dashboard analytics failed; falling back to summary-only mode.', [
+                    'error' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]);
+
+                $analytics = $this->emptyAnalytics(
+                    $totalOrders,
+                    $paidOrders,
+                    $pendingOrders,
+                    $failedOrders,
+                    $paidRevenue,
+                );
+            }
+
+            return compact(
+                'totalProducts',
+                'totalOrders',
+                'paidOrders',
+                'pendingOrders',
+                'failedOrders',
+                'totalAdmins',
+                'totalUsers',
+                'paidRevenue',
+                'latestPaid',
+                'analytics',
             );
         });
-        $paidOrderData = Order::where('status', 'PAID')
-            ->orderBy('paid_at')
-            ->get([
-                'id',
-                'user_id',
-                'product_id',
-                'product_name',
-                'amount',
-                'currency',
-                'paid_at',
-                'created_at',
-                'items',
-            ]);
 
-        try {
-            $analytics = $this->buildSalesAnalytics(
-                $paidOrderData,
-                $totalOrders,
-                $paidOrders,
-                $pendingOrders,
-                $failedOrders,
-                $paidRevenue,
-            );
-        } catch (\Throwable $exception) {
-            Log::warning('Admin dashboard analytics failed; falling back to summary-only mode.', [
-                'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
-
-            $analytics = $this->emptyAnalytics(
-                $totalOrders,
-                $paidOrders,
-                $pendingOrders,
-                $failedOrders,
-                $paidRevenue,
-            );
-        }
-
-        return view('admin.dashboard', compact(
-            'totalProducts',
-            'totalOrders',
-            'paidOrders',
-            'pendingOrders',
-            'failedOrders',
-            'totalAdmins',
-            'totalUsers',
-            'paidRevenue',
-            'latestPaid',
-            'analytics',
-        ));
+        return view('admin.dashboard', $dashboardData);
     }
 
     public function index()
@@ -123,6 +128,8 @@ class OrderAdminController extends Controller
             $this->orderPayments->sendTelegramPaidInvoice($order);
         }
 
+        $this->flushDashboardCache();
+
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order #'.$order->id.' was marked as paid.');
@@ -142,6 +149,8 @@ class OrderAdminController extends Controller
             'Marked as failed by admin review.',
         );
 
+        $this->flushDashboardCache();
+
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order #'.$order->id.' was marked as failed.');
@@ -157,10 +166,16 @@ class OrderAdminController extends Controller
 
         $orderId = $order->id;
         $order->delete();
+        $this->flushDashboardCache();
 
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order #'.$orderId.' was deleted.');
+    }
+
+    private function flushDashboardCache(): void
+    {
+        Cache::forget('admin:dashboard:summary:v1');
     }
 
     private function buildSalesAnalytics(

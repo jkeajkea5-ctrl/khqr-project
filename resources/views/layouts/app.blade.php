@@ -179,6 +179,7 @@ rel="stylesheet">
  .khqr-pagination .pagination {
      gap: 8px;
      align-items: center;
+     margin: 0;
  }
 
  .khqr-pagination .page-item {
@@ -192,6 +193,7 @@ rel="stylesheet">
      background: #ffffff;
      color: #0f172a;
      font-weight: 600;
+     line-height: 1;
      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
  }
 
@@ -200,7 +202,8 @@ rel="stylesheet">
      align-items: center;
      justify-content: center;
      gap: 6px;
-     min-width: 106px;
+     min-width: 82px;
+     padding-inline: 0.9rem;
  }
 
  .khqr-pagination .page-link:hover {
@@ -238,7 +241,8 @@ rel="stylesheet">
      }
 
      .khqr-pagination .page-link-nav {
-         min-width: 96px;
+         min-width: 74px;
+         padding-inline: 0.7rem;
      }
  }
  </style>

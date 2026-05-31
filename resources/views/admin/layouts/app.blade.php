@@ -312,7 +312,8 @@
 
     .view-content .pagination {
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 8px;
+        margin: 0;
     }
 
     .pagination .page-link {
@@ -323,6 +324,8 @@
         padding: 0.5rem 0.75rem;
         font-weight: 600;
         min-height: 40px;
+        line-height: 1;
+        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
         transition: all 0.2s ease;
     }
 
@@ -331,7 +334,8 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-width: 106px;
+        min-width: 82px;
+        padding-inline: 0.9rem;
     }
 
     .pagination .page-link:hover {
@@ -360,10 +364,14 @@
         color: var(--admin-primary);
         border: 1px solid var(--admin-border);
         border-radius: 2px;
-        min-width: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .pagination .page-item:first-child .page-link.page-link-nav,
+    .pagination .page-item:last-child .page-link.page-link-nav {
+        min-width: 82px;
     }
 
     .pagination .page-item:first-child .page-link:hover,
@@ -515,7 +523,13 @@
         }
 
         .pagination .page-link-nav {
-            min-width: 96px;
+            min-width: 74px;
+            padding-inline: 0.7rem;
+        }
+
+        .pagination .page-item:first-child .page-link.page-link-nav,
+        .pagination .page-item:last-child .page-link.page-link-nav {
+            min-width: 74px;
         }
     }
 </style>

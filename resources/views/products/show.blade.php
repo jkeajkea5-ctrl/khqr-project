@@ -71,14 +71,21 @@
 
                         <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
                             <span class="price fs-4 me-2">${{ number_format($product->price, 2) }}</span>
-                            <button type="submit" class="btn btn-khqr" data-redirect="cart">
-                                <i class="bi bi-lightning-charge"></i>
-                                Buy now
-                            </button>
                             <a href="{{ route('home') }}" class="btn btn-ghost d-none d-md-inline-flex">
                                 <i class="bi bi-arrow-left"></i>
                                 Back
                             </a>
+                        </div>
+
+                        <div class="detail-actions d-none d-md-grid mt-4">
+                            <button type="submit" class="btn btn-ghost">
+                                <i class="bi bi-bag-plus"></i>
+                                Add to cart
+                            </button>
+                            <button type="submit" class="btn btn-khqr" data-redirect="cart">
+                                <i class="bi bi-lightning-charge"></i>
+                                Buy now
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -89,9 +96,13 @@
 
 <div id="cartToast" class="cart-toast">Added to cart</div>
 <div class="mobile-action-bar d-md-none mb-2">
-    <button class="btn btn-khqr w-100" onclick="document.getElementById('addToCartForm').dispatchEvent(new Event('submit', {cancelable: true}))">
+    <button class="btn btn-ghost w-100" type="submit" form="addToCartForm">
         <i class="bi bi-bag-plus"></i>
         Add to cart
+    </button>
+    <button class="btn btn-khqr w-100" type="submit" form="addToCartForm" data-redirect="cart">
+        <i class="bi bi-lightning-charge"></i>
+        Buy now
     </button>
 </div>
 @endsection

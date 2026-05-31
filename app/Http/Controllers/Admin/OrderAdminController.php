@@ -3,18 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\OrderPaymentService;
 use App\Models\Admin;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OrderAdminController extends Controller
 {
+    public function __construct(
+        private readonly OrderPaymentService $orderPayments
+    ) {
+    }
+
     public function dashboard()
     {
-        Order::expirePending(2000);
+        $this->expirePendingOrders();
         $totalProducts = Product::count();
         $totalOrders   = Order::count();
         $paidOrders    = Order::where('status', 'PAID')->count();
@@ -45,14 +53,29 @@ class OrderAdminController extends Controller
                 'items',
             ]);
 
-        $analytics = $this->buildSalesAnalytics(
-            $paidOrderData,
-            $totalOrders,
-            $paidOrders,
-            $pendingOrders,
-            $failedOrders,
-            $paidRevenue,
-        );
+        try {
+            $analytics = $this->buildSalesAnalytics(
+                $paidOrderData,
+                $totalOrders,
+                $paidOrders,
+                $pendingOrders,
+                $failedOrders,
+                $paidRevenue,
+            );
+        } catch (\Throwable $exception) {
+            Log::warning('Admin dashboard analytics failed; falling back to summary-only mode.', [
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
+            ]);
+
+            $analytics = $this->emptyAnalytics(
+                $totalOrders,
+                $paidOrders,
+                $pendingOrders,
+                $failedOrders,
+                $paidRevenue,
+            );
+        }
 
         return view('admin.dashboard', compact(
             'totalProducts',
@@ -70,16 +93,74 @@ class OrderAdminController extends Controller
 
     public function index()
     {
-        Order::expirePending(2000);
-        $orders = Order::latest()->paginate(15);
+        $this->expirePendingOrders();
+        $orders = Order::with('user')->latest()->paginate(15);
         return view('admin.orders.index', compact('orders'));
     }
 
     public function paid()
     {
-        Order::expirePending(2000);
+        $this->expirePendingOrders();
         $orders = Order::where('status', 'PAID')->latest('paid_at')->paginate(15);
         return view('admin.payments.paid', compact('orders'));
+    }
+
+    public function markPaid(Order $order)
+    {
+        if ($order->status === 'PAID') {
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('success', 'Order #'.$order->id.' is already marked as paid.');
+        }
+
+        $changed = $this->orderPayments->markAsPaid(
+            $order,
+            now(),
+            (string) Auth::guard('admin')->id(),
+        );
+
+        if ($changed) {
+            $this->orderPayments->sendTelegramPaidInvoice($order);
+        }
+
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', 'Order #'.$order->id.' was marked as paid.');
+    }
+
+    public function markFailed(Order $order)
+    {
+        if ($order->status === 'PAID') {
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('error', 'Paid orders cannot be marked as failed.');
+        }
+
+        $this->orderPayments->markAsFailed(
+            $order,
+            (string) Auth::guard('admin')->id(),
+            'Marked as failed by admin review.',
+        );
+
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', 'Order #'.$order->id.' was marked as failed.');
+    }
+
+    public function destroy(Order $order)
+    {
+        if ($order->status === 'PAID') {
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('error', 'Paid orders cannot be deleted.');
+        }
+
+        $orderId = $order->id;
+        $order->delete();
+
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', 'Order #'.$orderId.' was deleted.');
     }
 
     private function buildSalesAnalytics(
@@ -129,95 +210,102 @@ class OrderAdminController extends Controller
         $previous7Stats = ['revenue' => 0.0, 'units' => 0, 'orders' => 0];
 
         foreach ($paidOrdersData as $order) {
-            $paidAt = $this->resolveOrderDate($order);
-            $dayKey = $paidAt->toDateString();
-            $orderRevenue = (float) $order->amount;
-            $orderUnits = 0;
-            $items = is_array($order->items) ? $order->items : [];
+            try {
+                $paidAt = $this->resolveOrderDate($order);
+                $dayKey = $paidAt->toDateString();
+                $orderRevenue = (float) $order->amount;
+                $orderUnits = 0;
+                $items = is_array($order->items) ? $order->items : [];
 
-            $userKey = $this->normalizeIdentifier($order->user_id);
-            if ($userKey !== null) {
-                $customerOrders[$userKey] = ($customerOrders[$userKey] ?? 0) + 1;
-            }
+                $userKey = $this->normalizeIdentifier($order->user_id);
+                if ($userKey !== null) {
+                    $customerOrders[$userKey] = ($customerOrders[$userKey] ?? 0) + 1;
+                }
 
-            if ($items !== []) {
-                foreach ($items as $item) {
-                    if (!is_array($item)) {
-                        continue;
+                if ($items !== []) {
+                    foreach ($items as $item) {
+                        if (!is_array($item)) {
+                            continue;
+                        }
+
+                        $quantity = $this->normalizeQuantity($item['qty'] ?? 1);
+                        $orderUnits += $quantity;
+
+                        $productKey = $this->buildProductKey(
+                            $item['id'] ?? null,
+                            $item['name'] ?? $order->product_name,
+                            $order->id,
+                        );
+
+                        if (!isset($productStats[$productKey])) {
+                            $productStats[$productKey] = [
+                                'name' => $this->normalizeProductName($item['name'] ?? $order->product_name),
+                                'units_sold' => 0,
+                                'revenue' => 0.0,
+                            ];
+                        }
+
+                        $productStats[$productKey]['units_sold'] += $quantity;
+                        $productStats[$productKey]['revenue'] += (float) ($item['price'] ?? 0) * $quantity;
                     }
-
-                    $quantity = $this->normalizeQuantity($item['qty'] ?? 1);
-                    $orderUnits += $quantity;
+                } else {
+                    $orderUnits = 1;
 
                     $productKey = $this->buildProductKey(
-                        $item['id'] ?? null,
-                        $item['name'] ?? $order->product_name,
+                        $order->product_id,
+                        $order->product_name,
                         $order->id,
                     );
 
                     if (!isset($productStats[$productKey])) {
                         $productStats[$productKey] = [
-                            'name' => $this->normalizeProductName($item['name'] ?? $order->product_name),
+                            'name' => $this->normalizeProductName($order->product_name),
                             'units_sold' => 0,
                             'revenue' => 0.0,
                         ];
                     }
 
-                    $productStats[$productKey]['units_sold'] += $quantity;
-                    $productStats[$productKey]['revenue'] += (float) ($item['price'] ?? 0) * $quantity;
-                }
-            } else {
-                $orderUnits = 1;
-
-                $productKey = $this->buildProductKey(
-                    $order->product_id,
-                    $order->product_name,
-                    $order->id,
-                );
-
-                if (!isset($productStats[$productKey])) {
-                    $productStats[$productKey] = [
-                        'name' => $this->normalizeProductName($order->product_name),
-                        'units_sold' => 0,
-                        'revenue' => 0.0,
-                    ];
+                    $productStats[$productKey]['units_sold'] += 1;
+                    $productStats[$productKey]['revenue'] += $orderRevenue;
                 }
 
-                $productStats[$productKey]['units_sold'] += 1;
-                $productStats[$productKey]['revenue'] += $orderRevenue;
-            }
+                $totalUnitsSold += $orderUnits;
+                $allTimeRevenueByDay[$dayKey] = ($allTimeRevenueByDay[$dayKey] ?? 0) + $orderRevenue;
 
-            $totalUnitsSold += $orderUnits;
-            $allTimeRevenueByDay[$dayKey] = ($allTimeRevenueByDay[$dayKey] ?? 0) + $orderRevenue;
+                if (isset($trendBuckets[$dayKey])) {
+                    $trendBuckets[$dayKey]['revenue'] += $orderRevenue;
+                    $trendBuckets[$dayKey]['units'] += $orderUnits;
+                    $trendBuckets[$dayKey]['orders'] += 1;
+                }
 
-            if (isset($trendBuckets[$dayKey])) {
-                $trendBuckets[$dayKey]['revenue'] += $orderRevenue;
-                $trendBuckets[$dayKey]['units'] += $orderUnits;
-                $trendBuckets[$dayKey]['orders'] += 1;
-            }
+                if ($paidAt->between($todayStart, $todayEnd, true)) {
+                    $this->accumulateWindowStats($todayStats, $orderRevenue, $orderUnits);
+                }
 
-            if ($paidAt->between($todayStart, $todayEnd, true)) {
-                $this->accumulateWindowStats($todayStats, $orderRevenue, $orderUnits);
-            }
+                if ($paidAt->between($yesterdayStart, $yesterdayEnd, true)) {
+                    $this->accumulateWindowStats($yesterdayStats, $orderRevenue, $orderUnits);
+                }
 
-            if ($paidAt->between($yesterdayStart, $yesterdayEnd, true)) {
-                $this->accumulateWindowStats($yesterdayStats, $orderRevenue, $orderUnits);
-            }
+                if ($paidAt->between($thisWeekStart, $thisWeekEnd, true)) {
+                    $this->accumulateWindowStats($thisWeekStats, $orderRevenue, $orderUnits);
+                }
 
-            if ($paidAt->between($thisWeekStart, $thisWeekEnd, true)) {
-                $this->accumulateWindowStats($thisWeekStats, $orderRevenue, $orderUnits);
-            }
+                if ($paidAt->between($previousWeekStart, $previousWeekEnd, true)) {
+                    $this->accumulateWindowStats($previousWeekStats, $orderRevenue, $orderUnits);
+                }
 
-            if ($paidAt->between($previousWeekStart, $previousWeekEnd, true)) {
-                $this->accumulateWindowStats($previousWeekStats, $orderRevenue, $orderUnits);
-            }
+                if ($paidAt->greaterThanOrEqualTo($last7Start)) {
+                    $this->accumulateWindowStats($last7Stats, $orderRevenue, $orderUnits);
+                }
 
-            if ($paidAt->greaterThanOrEqualTo($last7Start)) {
-                $this->accumulateWindowStats($last7Stats, $orderRevenue, $orderUnits);
-            }
-
-            if ($paidAt->between($previous7Start, $previous7End, true)) {
-                $this->accumulateWindowStats($previous7Stats, $orderRevenue, $orderUnits);
+                if ($paidAt->between($previous7Start, $previous7End, true)) {
+                    $this->accumulateWindowStats($previous7Stats, $orderRevenue, $orderUnits);
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('Skipping malformed paid order during dashboard analytics.', [
+                    'order_id' => $order->id ?? null,
+                    'error' => $exception->getMessage(),
+                ]);
             }
         }
 
@@ -285,9 +373,19 @@ class OrderAdminController extends Controller
 
     private function resolveOrderDate(Order $order): Carbon
     {
-        $date = $order->paid_at ?? $order->created_at ?? now();
+        try {
+            $date = $order->paid_at ?? $order->created_at ?? now();
 
-        return $date instanceof Carbon ? $date : Carbon::parse($date);
+            return $date instanceof Carbon ? $date : Carbon::parse($date);
+        } catch (\Throwable) {
+            $fallback = $order->created_at ?? now();
+
+            try {
+                return $fallback instanceof Carbon ? $fallback : Carbon::parse($fallback);
+            } catch (\Throwable) {
+                return now();
+            }
+        }
     }
 
     private function normalizeQuantity(mixed $quantity): int
@@ -312,7 +410,7 @@ class OrderAdminController extends Controller
             return 'product-'.$productKey;
         }
 
-        $normalizedName = mb_strtolower(trim((string) $productName));
+        $normalizedName = strtolower(trim((string) $productName));
 
         if ($normalizedName !== '') {
             return 'name-'.$normalizedName;
@@ -361,5 +459,55 @@ class OrderAdminController extends Controller
         return $currency === 'USD'
             ? '$'.$formatted
             : $formatted.' '.$currency;
+    }
+
+    private function expirePendingOrders(): void
+    {
+        try {
+            Order::expirePending(2000);
+        } catch (\Throwable $exception) {
+            Log::warning('Admin pending order expiry failed.', [
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function emptyAnalytics(
+        int $totalOrders,
+        int $paidOrders,
+        int $pendingOrders,
+        int $failedOrders,
+        float $paidRevenue,
+    ): array {
+        return [
+            'currency' => strtoupper((string) config('services.bakong.currency', 'USD')),
+            'trend_days' => 14,
+            'total_units_sold' => 0,
+            'average_order_value' => $paidOrders > 0 ? round($paidRevenue / $paidOrders, 2) : 0.0,
+            'average_units_per_order' => 0.0,
+            'payment_rate' => $totalOrders > 0 ? round(($paidOrders / $totalOrders) * 100, 1) : 0.0,
+            'paid_customers' => 0,
+            'repeat_customers' => 0,
+            'today' => ['revenue' => 0.0, 'units' => 0, 'orders' => 0],
+            'this_week' => ['revenue' => 0.0, 'units' => 0, 'orders' => 0],
+            'best_sales_day' => null,
+            'revenue_change' => 0.0,
+            'units_change' => 0.0,
+            'today_revenue_change' => 0.0,
+            'today_units_change' => 0.0,
+            'week_revenue_change' => 0.0,
+            'week_units_change' => 0.0,
+            'trend_chart' => [
+                'labels' => [],
+                'revenue' => [],
+                'units' => [],
+                'orders' => [],
+            ],
+            'status_chart' => [
+                'labels' => ['Paid', 'Pending', 'Failed'],
+                'data' => [$paidOrders, $pendingOrders, $failedOrders],
+            ],
+            'top_products' => [],
+        ];
     }
 }

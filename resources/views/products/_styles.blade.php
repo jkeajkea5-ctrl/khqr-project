@@ -175,6 +175,7 @@ body {
 
 .detail-actions {
     gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .cart-qty {
@@ -273,6 +274,11 @@ body {
     display: flex;
     gap: 10px;
     z-index: 25;
+}
+
+.mobile-action-bar .btn {
+    min-width: 0;
+    flex: 1 1 0;
 }
 
 .cart-card-actions,
@@ -881,6 +887,11 @@ body {
     .mobile-action-bar {
         bottom: 58px;
         padding: 10px 26px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .mobile-action-bar .btn {
+        padding-inline: 10px;
+        font-size: 0.86rem;
     }
 
     .cart-actions {

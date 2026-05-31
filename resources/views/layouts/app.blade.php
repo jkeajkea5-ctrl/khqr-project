@@ -168,6 +168,7 @@ rel="stylesheet">
      align-items: center;
      justify-content: space-between;
      gap: 12px;
+     margin-top: 16px;
  }
 
  .khqr-pagination-summary {
@@ -177,6 +178,7 @@ rel="stylesheet">
 
  .khqr-pagination .pagination {
      gap: 8px;
+     align-items: center;
  }
 
  .khqr-pagination .page-item {
@@ -191,6 +193,14 @@ rel="stylesheet">
      color: #0f172a;
      font-weight: 600;
      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+ }
+
+ .khqr-pagination .page-link-nav {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 6px;
+     min-width: 106px;
  }
 
  .khqr-pagination .page-link:hover {
@@ -220,6 +230,15 @@ rel="stylesheet">
      .khqr-pagination .pagination {
          justify-content: center;
          flex-wrap: wrap;
+     }
+
+     .khqr-pagination .page-link {
+         min-width: 38px;
+         padding: 0.5rem 0.65rem;
+     }
+
+     .khqr-pagination .page-link-nav {
+         min-width: 96px;
      }
  }
  </style>

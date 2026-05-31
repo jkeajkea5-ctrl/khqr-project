@@ -322,7 +322,16 @@
         border-radius: 2px;
         padding: 0.5rem 0.75rem;
         font-weight: 600;
+        min-height: 40px;
         transition: all 0.2s ease;
+    }
+
+    .pagination .page-link-nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 106px;
     }
 
     .pagination .page-link:hover {
@@ -499,6 +508,14 @@
 
         .view-content .pagination {
             justify-content: center;
+        }
+
+        .pagination .page-link {
+            padding: 0.48rem 0.62rem;
+        }
+
+        .pagination .page-link-nav {
+            min-width: 96px;
         }
     }
 </style>

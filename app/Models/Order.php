@@ -9,11 +9,28 @@ use Illuminate\Support\Collection;
 class Order extends AppModel
 {
     protected $fillable = [
-        'user_id','product_id','product_name','amount','currency','md5','bill_number','status','paid_at','items'
+        'user_id',
+        'product_id',
+        'product_name',
+        'amount',
+        'currency',
+        'md5',
+        'bill_number',
+        'status',
+        'paid_at',
+        'items',
+        'manual_review_status',
+        'manual_review_note',
+        'manual_review_requested_at',
+        'manual_review_resolved_at',
+        'manual_review_resolved_by',
+        'manual_review_resolution_note',
     ];
 
     protected $casts = [
         'paid_at' => 'datetime',
+        'manual_review_requested_at' => 'datetime',
+        'manual_review_resolved_at' => 'datetime',
         'items' => 'array',
     ];
 

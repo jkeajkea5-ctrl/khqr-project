@@ -13,7 +13,7 @@ class CategoryAdminController extends Controller
 {
     public function index()
     {
-        $categories = Category::orderBy('name')->paginate(12);
+        $categories = Category::latest()->paginate(10);
         $counts = Product::query()
             ->whereIn('category_id', $categories->pluck('id')->all())
             ->get(['category_id'])

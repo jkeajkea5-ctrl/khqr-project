@@ -29,6 +29,10 @@
         border-right: 1px solid var(--admin-border);
         transition: all 0.3s ease;
         z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .admin-main {
@@ -76,8 +80,16 @@
 
     @media (min-width: 992px) {
         .admin-shell .row.g-0 { display: flex; flex-wrap: nowrap; }
-        .admin-sidebar { position: sticky; top: 0; width: 200px; height: 100vh; flex: 0 0 200px; }
-        .admin-main { margin-left: 0; width: auto; flex: 1 1 auto; }
+        .admin-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 200px;
+            height: 100vh;
+            flex: 0 0 200px;
+        }
+        .admin-main { margin-left: 200px; width: calc(100% - 200px); flex: 1 1 auto; }
     }
 
     @media (max-width: 991px) {

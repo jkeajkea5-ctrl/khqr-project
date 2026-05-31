@@ -10,7 +10,7 @@ class UserAdminController extends Controller
 {
     public function index()
     {
-        $users = User::query()->latest()->paginate(15);
+        $users = User::query()->latest()->paginate(10);
         $orders = Order::query()
             ->whereIn('user_id', $users->pluck('id')->all())
             ->get(['user_id', 'status', 'amount']);

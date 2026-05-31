@@ -11,7 +11,7 @@ class SlideAdminController extends Controller
 {
     public function index()
     {
-        $slides = Slide::orderBy('position')->orderByDesc('id')->get();
+        $slides = Slide::latest()->paginate(10);
         return view('admin.slides.index', compact('slides'));
     }
 

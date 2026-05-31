@@ -94,14 +94,14 @@ class OrderAdminController extends Controller
     public function index()
     {
         $this->expirePendingOrders();
-        $orders = Order::with('user')->latest()->paginate(15);
+        $orders = Order::with('user')->latest()->paginate(10);
         return view('admin.orders.index', compact('orders'));
     }
 
     public function paid()
     {
         $this->expirePendingOrders();
-        $orders = Order::where('status', 'PAID')->latest('paid_at')->paginate(15);
+        $orders = Order::where('status', 'PAID')->latest('paid_at')->paginate(10);
         return view('admin.payments.paid', compact('orders'));
     }
 

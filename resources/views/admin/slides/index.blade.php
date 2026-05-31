@@ -94,4 +94,6 @@
         </a>
     </div>
 </div>
+
+<div class="mt-3">{{ $slides->links() }}</div>
 @endsection
